@@ -1,31 +1,32 @@
-ENTRY(_start)
-
-SECTIONS {
-    . = 4M;
-
-    .boot BLOCK(4K) : ALIGN(4K)
+OUTPUT_FORMAT("elf32-i386");
+ENTRY(_start);
+SECTIONS
+{
+    . = 0x1000;
+    .text :
     {
-        *(._multiboot_header)
+        *(.text);
     }
 
-    .text BLOCK(4K) : ALIGN(4K)
+    .data :
     {
-        *(.text)
+        *(.data);
+        *(.rodata);
     }
 
-    .rodata BLOCK(4K) : ALIGN(4K)
+    .bss :
     {
-        *(.rodata)
+        *(.bss);
     }
 
-    .data BLOCK(4K) : ALIGN(4K)
+    /DISCARD/ :
     {
-        *(.data)
-    }
-
-    .bss BLOCK(4K) : ALIGN(4K)
-    {
-        *(COMMON)
-        *(.bss)
+        *(.note.gnu.property);
+        *(.eh_frame);
+        *(.note*);
+        *(.iplt*);
+        *(.igot*);
+        *(.rel*);
+        *(.comment);
     }
 }

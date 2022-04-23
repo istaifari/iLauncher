@@ -110,11 +110,6 @@ void _kernel_echo_char(char echo_char, bool use_c_par)
     }
     else if (txt >= txt_max && txt_part == "NULL")
     {
-        if (echo_char == '\n')
-        {
-            printtext("\n", 0x0f, 0);
-            return;
-        }
         printchar(echo_char, echo_color, 0);
     }
 }
@@ -139,7 +134,7 @@ void _kernel_gfx_mode()
 
 void _kernel()
 {
-    //_kernel_gfx_mode();
+    /*_kernel_gfx_mode();*/
     clear_screen();
     if (line_inf)
         printtext("\f", 0x0f, 0);

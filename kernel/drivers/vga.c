@@ -97,9 +97,6 @@ void vga_draw(char ch, char color, int x, int y)
 	char *screen = (char *)VIDEO_MEMORY;
 	for (int i = 0; i < 80 * 25; i++)
 	{
-		/**screen = 0x20;
-		*(screen + 1) = 0x02;
-		screen += 2;*/
 		char *temp = (char *)VIDEO_MEMORY;
 		temp += +(80 * y_pos + x_pos) * 2;
 		*temp++ = ch;
@@ -111,26 +108,35 @@ void vga_update()
 {
 	for (int i = 0; i < vga_elem_length; i++)
 	{
+		vga_draw(vga_ch[i], vga_color[i], vga_x[i], vga_y[i]);
 		vga_draw(' ', 0x00, vga_x[i] - 1, vga_y[i]);
 		vga_draw(' ', 0x00, vga_x[i] + 1, vga_y[i]);
 		vga_draw(' ', 0x00, vga_x[i], vga_y[i] - 1);
 		vga_draw(' ', 0x00, vga_x[i], vga_y[i] + 1);
-		vga_draw(vga_ch[i], vga_color[i], vga_x[i], vga_y[i]);
-		/*vga_draw(vga_ch[i+1], vga_color[i+1], vga_x[i+1], vga_y[i+1]);
-		vga_draw(vga_ch[i-1], vga_color[i-1], vga_x[i-1], vga_y[i-1]);
-		vga_draw(vga_ch[i], vga_color[i], vga_x[i], vga_y[i]);*/
 	}
 }
 
 void vga_start()
 {
 	gfx_mode = true;
-	char *screen = (char *)VIDEO_MEMORY;
+	int icount = 0;
+	int count_x = 0;
+	int count_y = 0;
 	for (int i = 0; i < 4000; i++)
 	{
-		*screen = 0x20;
-		*(screen + 1) = 0x02;
-		screen += 2;
+		vga_draw(' ', 0x00, i, 0);
+		vga_draw(' ', 0x00, count_x, count_y++);
+		icount++;
+		if (icount > 25 - 1 && count_y > 25 - 1)
+		{
+			icount = 0;
+			count_y = 0;
+			count_x++;
+			if (count_x > 80 - 1)
+			{
+				count_x = 0;
+			}
+		}
 	}
 	extern bool line_inf;
 	line_inf = false;

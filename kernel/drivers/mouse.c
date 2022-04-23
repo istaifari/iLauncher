@@ -44,11 +44,6 @@ void mouse_setup()
     int i_x = 80 / 2;
     int i_y = 25 / 2;
     vga_add(' ', 0xff, i_x, i_y);
-    vga_add(' ', 0xff, 0, 0);
-    /*vga_add(' ', 0xff, 1, 0);
-    vga_add(' ', 0xff, 0, 1);
-    vga_add(' ', 0xff, 1, 1);*/
-    vga_add(' ', 0xff, 80, 25);
     for (;;)
     {
         char keyI1 = get_key();
@@ -76,8 +71,8 @@ void mouse_setup()
         {
             _reboot();
         }
-        vga_addUpdate(0, ' ', 0xff, i_x, i_y);
         vga_update();
+        vga_addUpdate(0, ' ', 0xff, i_x, i_y);
         /*if (gfx_port_byte_read(0x20))
             mouse_start();*/
     }

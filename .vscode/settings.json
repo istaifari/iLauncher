@@ -1,0 +1,15 @@
+{
+    "C_Cpp.errorSquiggles": "Disabled",
+    "files.associations": {
+        "terminal.h": "c",
+        "video.h": "c",
+        "stdint.h": "c",
+        "stdbool.h": "c",
+        "string.h": "c",
+        "stddef.h": "c",
+        "stdlib.h": "c",
+        "kernel.h": "c",
+        "stdio.h": "c"
+    },
+    "C_Cpp.dimInactiveRegions": false
+}

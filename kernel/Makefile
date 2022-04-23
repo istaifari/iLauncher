@@ -10,26 +10,19 @@ QEMU_ARCH := i386
 
 default: emu
 
+#grub-mkrescue -o ../ilauncher.iso ../OS_Files || echo Unknown Error!
+
 all:
+	nasm -$(ASM_BOOT_ARCH) ../boot/bootloader.S -o bootloader.bin || echo Unknown Error!
 	nasm -$(ASM_ARCH) boot.S || echo Unknown Error!
-	gcc -ffreestanding -fno-stack-protector -fno-pie -c $(C_SOURCES_1) -$(GCC_ARCH) || echo Unknown Error!
-	gcc -ffreestanding -fno-stack-protector -fno-pie -c $(C_SOURCES_2) -$(GCC_ARCH) || echo Unknown Error!
-	gcc -ffreestanding -fno-stack-protector -fno-pie -c $(C_SOURCES_3) -$(GCC_ARCH) || echo Unknown Error!
-	ld -o kernel.bin -$(LD_ARCH) $(LD_SOURCES) -T linker.ld || echo Unknown Error!
-	cp kernel.bin ../OS_Files/boot/kernel.bin || echo Unknown Error!
-	grub-mkrescue -o ../ilauncher.iso ../OS_Files || echo Unknown Error!
-	rm *.bin *.o || echo Unknown Error!
+	gcc -ffreestanding -fno-stack-protector -fno-pie -c -g -Os $(C_SOURCES_1) -$(GCC_ARCH) || echo Unknown Error!
+	gcc -ffreestanding -fno-stack-protector -fno-pie -c -g -Os $(C_SOURCES_2) -$(GCC_ARCH) || echo Unknown Error!
+	gcc -ffreestanding -fno-stack-protector -fno-pie -c -g -Os $(C_SOURCES_3) -$(GCC_ARCH) || echo Unknown Error!
+	ld -$(LD_ARCH) -Tlinker.ld -nostdlib --oformat binary $(LD_SOURCES) -o kernel.bin || echo Unknown Error!
+	cat bootloader.bin kernel.bin > ../OS_Files/boot.img || echo Unknown Error!
+	rm *.o *.bin || echo Unknown Error!
 	make emu || echo Unknown Error!
 
-all-NoEmu:
-	nasm -$(ASM_ARCH) boot.S || echo Unknown Error!
-	gcc -ffreestanding -fno-stack-protector -fno-pie -c $(C_SOURCES_1) -$(GCC_ARCH) || echo Unknown Error!
-	gcc -ffreestanding -fno-stack-protector -fno-pie -c $(C_SOURCES_2) -$(GCC_ARCH) || echo Unknown Error!
-	gcc -ffreestanding -fno-stack-protector -fno-pie -c $(C_SOURCES_3) -$(GCC_ARCH) || echo Unknown Error!
-	ld -o kernel.bin -$(LD_ARCH) $(LD_SOURCES) -T linker.ld || echo Unknown Error!
-	cp kernel.bin ../OS_Files/boot/kernel.bin || echo Unknown Error!
-	grub-mkrescue -o ../ilauncher.iso ../OS_Files || echo Unknown Error!
-	rm *.bin *.o || echo Unknown Error!
-
 emu:
-	qemu-system-$(QEMU_ARCH) -cdrom ../ilauncher.iso || qemu-system-$(QEMU_ARCH) ../ilauncher.img || echo 404: ilauncher.iso
+	qemu-system-$(QEMU_ARCH) -cdrom ../ilauncher.iso || qemu-system-$(QEMU_ARCH)  ../OS_Files/boot.img || echo 404: ilauncher.iso
+	qemu-system-$(QEMU_ARCH) -cdrom ../ilauncher.iso -vnc 127.0.0.1:2 || qemu-system-$(QEMU_ARCH)  ../OS_Files/boot.img -vnc 127.0.0.1:2 || echo 404: ilauncher.iso

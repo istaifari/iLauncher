@@ -1,15 +1,7 @@
-section ._multiboot_header
-MAGIC_NUMBER equ 0x1BADB002
-FLAGS equ 0x0
-CHECKSUM equ -MAGIC_NUMBER
-KERNEL_STACK_SIZE equ 4096
-align 4
-    dd MAGIC_NUMBER
-    dd FLAGS
-    dd CHECKSUM
+extern _kernel
 
 section .text
-extern _kernel
+
 global _start
 global _poweroff
 global _reboot
@@ -17,16 +9,9 @@ global _krand
 global _ksleep
 bits 32
 
-_poweroff:
-    hlt
-
-_reboot:
-    cli
-    mov al,0FEh
-    out 64h,al
-.halt:
-    hlt
-    jmp .halt
+_start:
+    call _kernel
+    jmp $
 
 _krand:
     push ebp
@@ -55,11 +40,13 @@ _ksleep:
     pop ebp
     ret
 
-_start:
-    mov esp, _stack + KERNEL_STACK_SIZE
-    call _kernel
+_poweroff:
+    hlt
 
-section .bss
-align 4
-_stack:
-    resb KERNEL_STACK_SIZE
+_reboot:
+    cli
+    mov al,0FEh
+    out 64h,al
+.halt:
+    hlt
+    jmp .halt
