@@ -10,36 +10,18 @@ int vga_update_stat = 1;
 
 char vga_ch[vga_buf_resolution];
 char vga_color[vga_buf_resolution];
-int vga_x[vga_buf_resolution];
-int vga_y[vga_buf_resolution];
+long vga_x[vga_buf_resolution];
+long vga_y[vga_buf_resolution];
 
-// read data from pin
-uint8_t gfx_port_byte_read(uint16_t port)
+void vga_add(char ch, char color, long x, long y)
 {
-	uint8_t result;
-	__asm__ volatile("inb %1, %0"
-					 : "=a"(result)
-					 : "Nd"(port));
-	return result;
-}
-
-// write data to pin
-void gfx_port_byte_write(uint16_t port, uint8_t data)
-{
-	__asm__ volatile("outb %0, %1"
-					 :
-					 : "a"(data), "Nd"(port));
-}
-
-void vga_add(char ch, char color, int x, int y)
-{
-	int x_pos = x;
+	long x_pos = x;
 	if (x_pos < 0)
 		x_pos = 0;
 	if (x_pos >= 80)
 		x_pos = 79;
 
-	int y_pos = y;
+	long y_pos = y;
 	if (y_pos < 0)
 		y_pos = 0;
 	if (y_pos >= 25)
@@ -53,7 +35,7 @@ void vga_add(char ch, char color, int x, int y)
 	vga_update_stat++;
 }
 
-void vga_addUpdate(int id, char ch, char color, int x, int y)
+void vga_addUpdate(int id, char ch, char color, long x, long y)
 {
 	vga_update_stat--;
 	vga_ch[id] = ch;
@@ -68,8 +50,8 @@ void vga_addRemove(int id)
 	vga_update_stat--;
 	char ch;
 	char color = 0x00;
-	int x = 0;
-	int y = 0;
+	long x = 0;
+	long y = 0;
 
 	vga_ch[id] = ch;
 	vga_color[id] = color;
@@ -79,23 +61,22 @@ void vga_addRemove(int id)
 	vga_update_stat++;
 }
 
-void vga_draw(char ch, char color, int x, int y)
+void vga_draw(char ch, char color, long x, long y)
 {
-	int x_pos = x;
+	long x_pos = x;
 	if (x_pos < -1)
 		x_pos = -1;
 	if (x_pos >= 80)
 		x_pos = 80;
 
-	int y_pos = y;
+	long y_pos = y;
 	if (y_pos < -1)
 		y_pos = 0;
 	if (y_pos >= 25)
 		y_pos = 25;
 
 	/* update screen and draw */
-	char *screen = (char *)VIDEO_MEMORY;
-	for (int i = 0; i < 80 * 25; i++)
+	for (int i = 0; i < 1; i++)
 	{
 		char *temp = (char *)VIDEO_MEMORY;
 		temp += +(80 * y_pos + x_pos) * 2;
@@ -106,13 +87,32 @@ void vga_draw(char ch, char color, int x, int y)
 
 void vga_update()
 {
-	for (int i = 0; i < vga_elem_length; i++)
+	int icount = 0;
+	int count_x = 0;
+	int count_y = 0;
+	for (int i = 0; i < 80 * 25; i++)
 	{
-		vga_draw(vga_ch[i], vga_color[i], vga_x[i], vga_y[i]);
-		vga_draw(' ', 0x00, vga_x[i] - 1, vga_y[i]);
-		vga_draw(' ', 0x00, vga_x[i] + 1, vga_y[i]);
-		vga_draw(' ', 0x00, vga_x[i], vga_y[i] - 1);
-		vga_draw(' ', 0x00, vga_x[i], vga_y[i] + 1);
+		vga_draw(' ', 0x00, i, 0);
+		vga_draw(' ', 0x00, count_x, count_y++);
+		icount++;
+		if (icount > 25 - 1 && count_y > 25 - 1)
+		{
+			icount = 0;
+			count_y = 0;
+			count_x++;
+			if (count_x > 80 - 1)
+			{
+				count_x = 0;
+			}
+		}
+		for (int i = 0; i < vga_elem_length; i++)
+		{
+			vga_draw(vga_ch[i], vga_color[i], vga_x[i], vga_y[i]);
+			vga_draw(' ', 0x00, vga_x[i] - 1, vga_y[i]);
+			vga_draw(' ', 0x00, vga_x[i] + 1, vga_y[i]);
+			vga_draw(' ', 0x00, vga_x[i], vga_y[i] - 1);
+			vga_draw(' ', 0x00, vga_x[i], vga_y[i] + 1);
+		}
 	}
 }
 

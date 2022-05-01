@@ -5,6 +5,10 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include <ctype.h>
+#include "include/fat.h"
+#include "include/interrupts.h"
+#include "include/port.h"
 #include "include/vga.h"
 #include "include/mouse.h"
 #include "include/stdlib.h"

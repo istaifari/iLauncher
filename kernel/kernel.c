@@ -129,12 +129,12 @@ void _kernel_echo(char *echo_direct, bool use_c_par)
 void _kernel_gfx_mode()
 {
     vga_start();
-    mouse_setup();
+    MouseSetup();
 }
 
 void _kernel()
 {
-    /*_kernel_gfx_mode();*/
+    _kernel_gfx_mode();
     clear_screen();
     if (line_inf)
         printtext("\f", 0x0f, 0);

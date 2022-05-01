@@ -3,24 +3,6 @@
 
 int cursor_pos = -1;
 
-// read data from pin
-unsigned char port_byte_read(unsigned short port)
-{
-	unsigned char result;
-	__asm__("in %%dx,%%al"
-			: "=a"(result)
-			: "d"(port));
-	return result;
-}
-
-// write data to pin
-void port_byte_write(unsigned short port, unsigned char data)
-{
-	__asm__("out %%al,%%dx"
-			:
-			: "a"(data), "d"(port));
-}
-
 int get_cursor_pos()
 {
 	if (cursor_pos == -1)
@@ -46,18 +28,21 @@ void set_cursor_pos(int x, int y)
 
 void clear_screen()
 {
-	char *screen = (char *)VIDEO_MEMORY;
-	for (int i = 0; i < 4000; i++)
+	if (!gfx_mode)
 	{
-		*screen = 0x20;
-		*(screen + 1) = 0x02;
-		screen += 2;
+		char *screen = (char *)VIDEO_MEMORY;
+		for (int i = 0; i < 4000; i++)
+		{
+			*screen = 0x20;
+			*(screen + 1) = 0x02;
+			screen += 2;
+		}
+		set_cursor_pos(0, 0);
+		printtext(os_name, 0x0f, 0);
+		printtext(" Shell ", 0x0f, 0);
+		printtext(os_version, 0x0f, 0);
+		next_line(0);
 	}
-	set_cursor_pos(0, 0);
-	printtext(os_name, 0x0f, 0);
-	printtext(" Shell ", 0x0f, 0);
-	printtext(os_version, 0x0f, 0);
-	next_line(0);
 }
 
 void scroll()

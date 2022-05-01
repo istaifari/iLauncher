@@ -1,4 +1,5 @@
 #include "../include/video.h"
+#include "../include/interrupts.h"
 
 unsigned char kbdus[128] =
     {
@@ -52,4 +53,5 @@ char get_key()
   if (keycode >= 128 || keycode < 0)
     return 0;
   return kbdus[keycode];
+  PIC_EndMaster();
 }
