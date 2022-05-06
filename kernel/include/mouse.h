@@ -5,7 +5,7 @@
 #include "../include/vga.h"
 #include "../include/keyboard.h"
 
-int GetMousePos();
+long int GetMouseInfo();
 void HandlePS2Mouse(uint8_t data);
 void InitPS2Mouse();
 void MouseSetup();

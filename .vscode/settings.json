@@ -10,7 +10,9 @@
         "stdlib.h": "c",
         "kernel.h": "c",
         "stdio.h": "c",
-        "interrupts.h": "c"
+        "interrupts.h": "c",
+        "keyboard.h": "c",
+        "mouse.h": "c"
     },
     "C_Cpp.dimInactiveRegions": false
 }

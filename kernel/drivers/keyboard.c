@@ -44,9 +44,7 @@ unsigned char kbdus[128] =
 char get_key()
 {
   char keycode = 0;
-  char status = 0;
-  status = port_byte_read(0x64);
-  if (status & 0x01)
+  if (port_byte_read(0x64) & 0x01)
   {
     keycode = port_byte_read(0x60);
   }

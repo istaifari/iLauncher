@@ -6,7 +6,7 @@ LD_SOURCES := *.o
 LD_ARCH := melf_i386
 ASM_ARCH := felf32
 ASM_BOOT_ARCH := fbin
-QEMU_ARCH := i386
+QEMU_ARCH := i386# -usbdevice keyboard
 
 default: emu
 
