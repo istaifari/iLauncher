@@ -5,6 +5,7 @@
 
 int strlen(char *str);
 void reverse(char *s);
+void memcpy(void *dest, void *src, size_t n);
 int strcmp(char *str1,char *str2);
 void strcpy(char* buf_to,char* buf_from);
 char* strncat(char* destination, const char* source, size_t num);

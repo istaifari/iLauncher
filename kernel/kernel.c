@@ -140,7 +140,7 @@ void _kernel()
         printtext("\f", 0x0f, 0);
     int buf_size = 80 * 25;
     char buf[buf_size];
-    while (1)
+    while (4)
     {
         buf[buf_size];
         scan(buf, buf_size);
@@ -157,8 +157,7 @@ void _kernel()
                 "color aqua",
                 "color blue",
                 "color pink",
-                "color orange"
-            };
+                "color orange"};
         char *colors = "WARNING: this only applies on \"echo\" command\n"
                        "color black\n"
                        "color white\n"
@@ -250,7 +249,6 @@ void _kernel()
         if (line_inf)
             printtext("\f", 0x0f, 0);
     }
-    return;
 }
 
 void _kernel_opendir_char(char dir)

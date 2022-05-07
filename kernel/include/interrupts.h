@@ -10,7 +10,7 @@
 #define ICW1_ICW4 0x01
 #define ICW4_8086 0x01
 
-char KeyboardInterrupt();
+void KeyboardInterrupt();
 void MouseInterrupt();
 void RemapPIC();
 void PIC_EndMaster();

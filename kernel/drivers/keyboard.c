@@ -1,6 +1,8 @@
 #include "../include/video.h"
 #include "../include/interrupts.h"
 
+char kbdus_keycode = 0;
+
 unsigned char kbdus[128] =
     {
         0, 27, '1', '2', '3', '4', '5', '6', '7', '8',    /* 9 */
@@ -41,15 +43,14 @@ unsigned char kbdus[128] =
         0, /* All other keys are undefined */
 };
 
-char get_key()
+void SetKey(char key_c)
 {
-  char keycode = 0;
-  if (port_byte_read(0x64) & 0x01)
-  {
-    keycode = port_byte_read(0x60);
-  }
-  if (keycode >= 128 || keycode < 0)
-    return 0;
-  return kbdus[keycode];
-  PIC_EndMaster();
+  kbdus_keycode = key_c;
+  if (kbdus_keycode >= 128 || kbdus_keycode < 0)
+    kbdus_keycode = 0;
+}
+
+char GetKey()
+{
+  return kbdus[kbdus_keycode];
 }

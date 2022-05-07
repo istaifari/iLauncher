@@ -1,6 +1,4 @@
-#include "../kernel.h"
-#include "../include/vga.h"
-#include "../include/keyboard.h"
+#include "../include/interrupts.h"
 
 #define VGA_AC_INDEX 0x3C0
 #define VGA_AC_WRITE 0x3C0
@@ -25,6 +23,7 @@
 #define peekb(S, O) *(unsigned char *)(16uL * (S) + (O))
 #define pokeb(S, O, V) *(unsigned char *)(16uL * (S) + (O)) = (V)
 #define pokew(S, O, V) *(unsigned short *)(16uL * (S) + (O)) = (V)
+#define	_vmemwr(DS,DO,S,N) memcpy((char *)((DS) * 16 + (DO)), S, N)
 
 long int vga_elem_length = 0;
 long int vga_update_stat = 1;
@@ -81,72 +80,102 @@ unsigned vpeekb(unsigned off)
 
 static void putpixel1(unsigned x, unsigned y, unsigned c)
 {
-	unsigned wd_in_bytes;
-	unsigned off, mask;
+	if (x < 0 || !(x >= vga_width))
+	{
+		if (y < 0 || !(y >= vga_height))
+		{
+			unsigned wd_in_bytes;
+			unsigned off, mask;
 
-	c = (c & 1) * 0xFF;
-	wd_in_bytes = vga_width / 8;
-	off = wd_in_bytes * y + x / 8;
-	x = (x & 7) * 1;
-	mask = 0x80 >> x;
-	vpokeb(off, (vpeekb(off) & ~mask) | (c & mask));
+			c = (c & 1) * 0xFF;
+			wd_in_bytes = vga_width / 8;
+			off = wd_in_bytes * y + x / 8;
+			x = (x & 7) * 1;
+			mask = 0x80 >> x;
+			vpokeb(off, (vpeekb(off) & ~mask) | (c & mask));
+		}
+	}
 }
 /*****************************************************************************
 *****************************************************************************/
 static void putpixel2(unsigned x, unsigned y, unsigned c)
 {
-	unsigned wd_in_bytes, off, mask;
+	if (x < 0 || !(x >= vga_width))
+	{
+		if (y < 0 || !(y >= vga_height))
+		{
+			unsigned wd_in_bytes, off, mask;
 
-	c = (c & 3) * 0x55;
-	wd_in_bytes = vga_width / 4;
-	off = wd_in_bytes * y + x / 4;
-	x = (x & 3) * 2;
-	mask = 0xC0 >> x;
-	vpokeb(off, (vpeekb(off) & ~mask) | (c & mask));
+			c = (c & 3) * 0x55;
+			wd_in_bytes = vga_width / 4;
+			off = wd_in_bytes * y + x / 4;
+			x = (x & 3) * 2;
+			mask = 0xC0 >> x;
+			vpokeb(off, (vpeekb(off) & ~mask) | (c & mask));
+		}
+	}
 }
 /*****************************************************************************
 *****************************************************************************/
 static void putpixel4p(unsigned x, unsigned y, unsigned c)
 {
-	unsigned wd_in_bytes, off, mask, p, pmask;
-
-	wd_in_bytes = vga_width / 8;
-	off = wd_in_bytes * y + x / 8;
-	x = (x & 7) * 1;
-	mask = 0x80 >> x;
-	pmask = 1;
-	for (p = 0; p < 4; p++)
+	if (x < 0 || !(x >= vga_width))
 	{
-		set_plane(p);
-		if (pmask & c)
-			vpokeb(off, vpeekb(off) | mask);
-		else
-			vpokeb(off, vpeekb(off) & ~mask);
-		pmask <<= 1;
+		if (y < 0 || !(y >= vga_height))
+		{
+			unsigned wd_in_bytes, off, mask, p, pmask;
+
+			wd_in_bytes = vga_width / 8;
+			off = wd_in_bytes * y + x / 8;
+			x = (x & 7) * 1;
+			mask = 0x80 >> x;
+			pmask = 1;
+			for (p = 0; p < 4; p++)
+			{
+				set_plane(p);
+				if (pmask & c)
+					vpokeb(off, vpeekb(off) | mask);
+				else
+					vpokeb(off, vpeekb(off) & ~mask);
+				pmask <<= 1;
+			}
+		}
 	}
 }
 /*****************************************************************************
 *****************************************************************************/
 static void putpixel8(unsigned x, unsigned y, unsigned c)
 {
-	unsigned wd_in_bytes;
-	unsigned off;
+	if (x < 0 || !(x >= vga_width))
+	{
+		if (y < 0 || !(y >= vga_height))
+		{
+			unsigned wd_in_bytes;
+			unsigned off;
 
-	wd_in_bytes = vga_width;
-	off = wd_in_bytes * y + x;
-	vpokeb(off, c);
+			wd_in_bytes = vga_width;
+			off = wd_in_bytes * y + x;
+			vpokeb(off, c);
+		}
+	}
 }
 /*****************************************************************************
 *****************************************************************************/
 static void putpixel8x(unsigned x, unsigned y, unsigned c)
 {
-	unsigned wd_in_bytes;
-	unsigned off;
+	if (x < 0 || !(x >= vga_width))
+	{
+		if (y < 0 || !(y >= vga_height))
+		{
+			unsigned wd_in_bytes;
+			unsigned off;
 
-	wd_in_bytes = vga_width / 4;
-	off = wd_in_bytes * y + x / 4;
-	set_plane(x & 3);
-	vpokeb(off, c);
+			wd_in_bytes = vga_width / 4;
+			off = wd_in_bytes * y + x / 4;
+			set_plane(x & 3);
+			vpokeb(off, c);
+		}
+	}
 }
 /*****************************************************************************
 *****************************************************************************/

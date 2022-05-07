@@ -1,6 +1,9 @@
 #pragma once
 #include <stddef.h>
 #include <stdint.h>
+#include "../include/vga.h"
+#include "../include/keyboard.h"
+#include "../include/interrupts.h"
 
 uint8_t port_byte_read(uint16_t port);
 void port_byte_write(uint16_t port, uint8_t data);

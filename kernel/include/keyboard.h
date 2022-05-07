@@ -1,6 +1,7 @@
 #ifndef _KEYBOARD_H
 #define _KEYBOARD_H
 
-char get_key();
+void SetKey(char key_c);
+char GetKey();
 void disrepeat();
 #endif  

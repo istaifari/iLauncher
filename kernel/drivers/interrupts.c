@@ -1,16 +1,24 @@
 #include "../include/interrupts.h"
 
-char KeyboardInterrupt()
+void KeyboardInterrupt()
 {
-    return get_key();
+    PIC_EndMaster();
+    if (port_byte_read(0x64) & 0x01 && !((port_byte_read(0x64) & 0b10) == 0) && !(port_byte_read(0x64) & 0b1))
+    {
+        SetKey(inb(0x60));
+    }
     PIC_EndMaster();
 }
 
 void MouseInterrupt()
 {
-    uint8_t mouseData = inb(0x60);
-    HandlePS2Mouse(mouseData);
     PIC_EndSlave();
+    if ((port_byte_read(0x64) & 0b10) == 0 && port_byte_read(0x64) & 0b1)
+    {
+        HandlePS2Mouse(inb(0x60));
+    }
+    PIC_EndSlave();
+
 }
 
 void PIC_EndMaster()

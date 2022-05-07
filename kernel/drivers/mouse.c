@@ -1,23 +1,4 @@
 #include "../include/mouse.h"
-#include "../include/interrupts.h"
-
-unsigned MousePointer[] = {
-    0x3f,0x3f,0x3f,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-    0x3f,0x3f,0x3f,0x3f,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-    0x3f,0x3f,0x00,0x3f,0x3f,0x00,0x00,0x00,0x00,0x00,0x00,
-    0x3f,0x3f,0x00,0x00,0x3f,0x3f,0x00,0x00,0x00,0x00,0x00,
-    0x3f,0x3f,0x00,0x00,0x00,0x3f,0x3f,0x00,0x00,0x00,0x00,
-    0x3f,0x3f,0x00,0x00,0x00,0x00,0x3f,0x3f,0x00,0x00,0x00,
-    0x3f,0x3f,0x00,0x00,0x00,0x00,0x00,0x3f,0x3f,0x00,0x00,
-    0x3f,0x3f,0x00,0x00,0x00,0x00,0x00,0x00,0x3f,0x3f,0x00,
-    0x3f,0x3f,0x00,0x00,0x00,0x00,0x3f,0x3f,0x3f,0x3f,0x3f,
-    0x3f,0x3f,0x00,0x3f,0x00,0x00,0x3f,0x3f,0x00,0x00,0x00,
-    0x3f,0x3f,0x3f,0x3f,0x3f,0x00,0x3f,0x3f,0x00,0x00,0x00,
-    0x3f,0x3f,0x3f,0x3f,0x3f,0x00,0x00,0x3f,0x3f,0x00,0x00,
-    0x3f,0x3f,0x3f,0x00,0x3f,0x3f,0x00,0x3f,0x3f,0x00,0x00,
-    0x00,0x00,0x00,0x00,0x3f,0x3f,0x3f,0x3f,0x00,0x00,0x00,
-    0x00,0x00,0x00,0x00,0x00,0x3f,0x3f,0x00,0x00,0x00,0x00,
-};
 
 #define PS2Leftbutton 0b00000001
 #define PS2Middlebutton 0b00000100
@@ -33,9 +14,10 @@ typedef struct
     long y;
     long x_old;
     long y_old;
-    int width;
-    int height;
+    long width;
+    long height;
     long Sensitivity;
+    /*bool OnMouseMove;*/
     bool OnMouseDown_Left;
     bool OnMouseDown_Middle;
     bool OnMouseDown_Right;
@@ -110,17 +92,26 @@ void HandlePS2Mouse(uint8_t data)
         MouseCycle = 0;
         break;
     }
+    ProcessMousePacket();
 }
 
 void ProcessMousePacket()
 {
+    /*if (Mouse.x != Mouse.x_old || Mouse.y != Mouse.y_old || Mouse.x != Mouse.x || Mouse.y != Mouse.y)
+    {
+        Mouse.OnMouseMove = true;
+    }
+    else
+    {
+        Mouse.OnMouseMove = false;
+    }*/
+
     if (!MousePacketReady)
         return;
 
     Mouse.x_old = Mouse.x;
     Mouse.y_old = Mouse.y;
     Mouse.Sensitivity = 255;
-    vga_fillRect(Mouse.x_old, Mouse.y_old, Mouse.width, Mouse.height, 0x00);
 
     bool xNegative, yNegative, xOverflow, yOverflow;
 
@@ -191,46 +182,55 @@ void ProcessMousePacket()
     {
         Mouse.x += MousePacket[1];
         if (xOverflow)
-        {
             Mouse.x += Mouse.Sensitivity;
-        }
+        if (Mouse.x != Mouse.x_old)
+            vga_fillRect(Mouse.x_old, Mouse.y_old, Mouse.width, Mouse.height, 0x00);
     }
     else
     {
         MousePacket[1] = (Mouse.Sensitivity + 1) - MousePacket[1];
         Mouse.x -= MousePacket[1];
         if (xOverflow)
-        {
             Mouse.x -= Mouse.Sensitivity;
-        }
+        if (Mouse.x != Mouse.x_old)
+            vga_fillRect(Mouse.x_old, Mouse.y_old, Mouse.width, Mouse.height, 0x00);
     }
 
     if (!yNegative)
     {
         Mouse.y -= MousePacket[2];
         if (yOverflow)
-        {
             Mouse.y -= Mouse.Sensitivity;
-        }
+        if (Mouse.y != Mouse.y_old)
+            vga_fillRect(Mouse.x_old, Mouse.y_old, Mouse.width, Mouse.height, 0x00);
     }
     else
     {
         MousePacket[2] = (Mouse.Sensitivity + 1) - MousePacket[2];
         Mouse.y += MousePacket[2];
         if (yOverflow)
-        {
             Mouse.y += Mouse.Sensitivity;
-        }
+        if (Mouse.y != Mouse.y_old)
+            vga_fillRect(Mouse.x_old, Mouse.y_old, Mouse.width, Mouse.height, 0x00);
     }
+
+    /*if (Mouse.x != Mouse.x_old || Mouse.y != Mouse.y_old || Mouse.x != Mouse.x || Mouse.y != Mouse.y)
+    {
+        Mouse.OnMouseMove = true;
+    }
+    else
+    {
+        Mouse.OnMouseMove = false;
+    }*/
 
     if (Mouse.x < 0)
         Mouse.x = 0;
-    if (Mouse.x >= vga_getresolution(1) - Mouse.width)
-        Mouse.x = vga_getresolution(1) - Mouse.width - 1;
+    if (Mouse.x >= vga_getresolution(1))
+        Mouse.x = vga_getresolution(1) - 1;
     if (Mouse.y < 0)
         Mouse.y = 0;
-    if (Mouse.y >= vga_getresolution(2) - Mouse.height)
-        Mouse.y = vga_getresolution(2) - Mouse.height - 1;
+    if (Mouse.y >= vga_getresolution(2))
+        Mouse.y = vga_getresolution(2) - 1;
     MousePacketReady = false;
 }
 
@@ -264,44 +264,36 @@ long int GetMouseInfo(int offset_pos)
 
 void MouseSetup()
 {
-    Mouse.width = 11;
-    Mouse.height = 15;
+    Mouse.width = 12;
+    Mouse.height = 16;
     Mouse.x = (vga_getresolution(1) - Mouse.width) / 2;
     Mouse.y = (vga_getresolution(2) - Mouse.height) / 2;
     Mouse.x_old = Mouse.x;
     Mouse.y_old = Mouse.y;
     InitPS2Mouse();
-    vga_add(' ', 0x00, 0, 0);
-    vga_add(' ', 0x00, 0, 0);
-    while (true)
+    while (4)
     {
-        /*if (KeyboardInterrupt() == 35)
+        /*if (GetKey() == 35)
         {
             _reboot();
         }*/
-        ProcessMousePacket();
-        if ((port_byte_read(0x64) & 0b10) == 0 && port_byte_read(0x64) & 0b1)
-        {
-            MouseInterrupt();
-        }
-        else if (port_byte_read(0x64) & 0x01)
-        {
-            InitPS2Mouse();
-        }
-        /*vga_addUpdate(1, ' ', 0x00, Mouse.x_old, Mouse.y_old);
-        vga_addUpdate(0, '^', 0x0f, GetMouseInfo(0), GetMouseInfo(1));*/
+        KeyboardInterrupt();
+        MouseInterrupt();
         if (Mouse.OnMouseDown_Left)
         {
             if (Mouse.x > 0 && Mouse.y > 0)
-                vga_fillRect(Mouse.x_old-1, Mouse.y_old-1, 32, 32, 0x3f);
+                vga_fillRect(Mouse.x - 1, Mouse.y - 1, 32, 32, 0x3f);
+        }
+        else if (Mouse.OnMouseDown_Middle)
+        {
+            Mouse.OnMouseDown_Middle = false;
+            _reboot();
         }
         else if (Mouse.OnMouseDown_Right)
         {
             if (Mouse.x > 0 && Mouse.y > 0)
-                vga_fillRect(Mouse.x_old-1, Mouse.y_old-1, 32, 32, 0x00);
+                vga_fillRect(Mouse.x - 1, Mouse.y - 1, 32, 32, 0x00);
         }
         vga_drawimage(Mouse.x, Mouse.y, Mouse.width, Mouse.height, MousePointer);
-        // vga_drawimage(Mouse.x, Mouse.y, 16, 16, MousePointer);
-        // vga_update();
     }
 }
