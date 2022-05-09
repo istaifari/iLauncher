@@ -12,7 +12,9 @@
         "stdio.h": "c",
         "interrupts.h": "c",
         "keyboard.h": "c",
-        "mouse.h": "c"
+        "mouse.h": "c",
+        "mouse_icons.h": "c",
+        "font_8x8.h": "c"
     },
     "C_Cpp.dimInactiveRegions": false
 }

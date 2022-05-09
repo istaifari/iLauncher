@@ -1,6 +1,5 @@
 #pragma once
 #define VIDEO_MEMORY 0xb8000
-#define GFX_VIDEO_MEMORY 0xA0000
 #define VIDEO_CONTROL_PIN 0x3D4
 #define VIDEO_DATA_PIN 0x3D5
 #include <stdint.h>

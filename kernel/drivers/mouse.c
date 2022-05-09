@@ -66,6 +66,8 @@ uint8_t MousePacket[4];
 bool MousePacketReady = false;
 MouseInfo Mouse;
 
+void ProcessMousePacket();
+
 void HandlePS2Mouse(uint8_t data)
 {
     switch (MouseCycle)
@@ -105,6 +107,25 @@ void ProcessMousePacket()
     {
         Mouse.OnMouseMove = false;
     }*/
+
+    unsigned MousePointer_Clear_12x16[] = {
+        0x00,0x40,0x40,0x40,0x40,0x40,0x40,0x40,0x40,0x40,0x40,0x40,
+        0x00,0x00,0x40,0x40,0x40,0x40,0x40,0x40,0x40,0x40,0x40,0x40,
+        0x00,0x00,0x00,0x40,0x40,0x40,0x40,0x40,0x40,0x40,0x40,0x40,
+        0x00,0x00,0x00,0x00,0x40,0x40,0x40,0x40,0x40,0x40,0x40,0x40,
+        0x00,0x00,0x00,0x00,0x00,0x40,0x40,0x40,0x40,0x40,0x40,0x40,
+        0x00,0x00,0x00,0x00,0x00,0x00,0x40,0x40,0x40,0x40,0x40,0x40,
+        0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x40,0x40,0x40,0x40,0x40,
+        0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x40,0x40,0x40,0x40,
+        0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x40,0x40,0x40,
+        0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x40,0x40,
+        0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x40,
+        0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+        0x00,0x00,0x00,0x00,0x00,0x40,0x40,0x40,0x40,0x40,0x40,0x40,
+        0x00,0x00,0x00,0x00,0x40,0x40,0x40,0x40,0x40,0x40,0x40,0x40,
+        0x00,0x00,0x00,0x40,0x40,0x40,0x40,0x40,0x40,0x40,0x40,0x40,
+        0x00,0x00,0x40,0x40,0x40,0x40,0x40,0x40,0x40,0x40,0x40,0x40,
+    };
 
     if (!MousePacketReady)
         return;
@@ -184,7 +205,7 @@ void ProcessMousePacket()
         if (xOverflow)
             Mouse.x += Mouse.Sensitivity;
         if (Mouse.x != Mouse.x_old)
-            vga_fillRect(Mouse.x_old, Mouse.y_old, Mouse.width, Mouse.height, 0x00);
+            vga_drawimage(Mouse.x_old, Mouse.y_old, Mouse.width, Mouse.height, MousePointer_Clear_12x16);
     }
     else
     {
@@ -193,7 +214,7 @@ void ProcessMousePacket()
         if (xOverflow)
             Mouse.x -= Mouse.Sensitivity;
         if (Mouse.x != Mouse.x_old)
-            vga_fillRect(Mouse.x_old, Mouse.y_old, Mouse.width, Mouse.height, 0x00);
+            vga_drawimage(Mouse.x_old, Mouse.y_old, Mouse.width, Mouse.height, MousePointer_Clear_12x16);
     }
 
     if (!yNegative)
@@ -202,7 +223,7 @@ void ProcessMousePacket()
         if (yOverflow)
             Mouse.y -= Mouse.Sensitivity;
         if (Mouse.y != Mouse.y_old)
-            vga_fillRect(Mouse.x_old, Mouse.y_old, Mouse.width, Mouse.height, 0x00);
+            vga_drawimage(Mouse.x_old, Mouse.y_old, Mouse.width, Mouse.height, MousePointer_Clear_12x16);
     }
     else
     {
@@ -211,7 +232,7 @@ void ProcessMousePacket()
         if (yOverflow)
             Mouse.y += Mouse.Sensitivity;
         if (Mouse.y != Mouse.y_old)
-            vga_fillRect(Mouse.x_old, Mouse.y_old, Mouse.width, Mouse.height, 0x00);
+            vga_drawimage(Mouse.x_old, Mouse.y_old, Mouse.width, Mouse.height, MousePointer_Clear_12x16);
     }
 
     /*if (Mouse.x != Mouse.x_old || Mouse.y != Mouse.y_old || Mouse.x != Mouse.x || Mouse.y != Mouse.y)
@@ -281,8 +302,7 @@ void MouseSetup()
         MouseInterrupt();
         if (Mouse.OnMouseDown_Left)
         {
-            if (Mouse.x > 0 && Mouse.y > 0)
-                vga_fillRect(Mouse.x - 1, Mouse.y - 1, 32, 32, 0x3f);
+            vga_fillRect(Mouse.x - 1, Mouse.y - 1, 32, 32, 0x3f);
         }
         else if (Mouse.OnMouseDown_Middle)
         {
@@ -291,9 +311,9 @@ void MouseSetup()
         }
         else if (Mouse.OnMouseDown_Right)
         {
-            if (Mouse.x > 0 && Mouse.y > 0)
-                vga_fillRect(Mouse.x - 1, Mouse.y - 1, 32, 32, 0x00);
+            vga_fillRect(Mouse.x - 1, Mouse.y - 1, 32, 32, 0x00);
         }
-        vga_drawimage(Mouse.x, Mouse.y, Mouse.width, Mouse.height, MousePointer);
+        //vga_drawimage(Mouse.x, Mouse.y, Mouse.width, Mouse.height, MousePointer_Clear_12x16);
+        vga_drawimage(Mouse.x, Mouse.y, Mouse.width, Mouse.height, MousePointer_12x16);
     }
 }

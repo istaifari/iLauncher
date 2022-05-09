@@ -1,5 +1,14 @@
-extern _kernel
+MAGIC_NUMBER equ 0x1BADB002 ; 1 bad boot
+FLAGS        equ 0x0
+CHECKSUM     equ -MAGIC_NUMBER
+section .text
+align 4
+    dd MAGIC_NUMBER
+    dd FLAGS
+    dd CHECKSUM
+KERNEL_STACK_SIZE equ 4096  ; 4kb of stack
 
+extern _kernel
 section .text
 
 global _start
@@ -10,6 +19,7 @@ global _ksleep
 bits 32
 
 _start:
+    mov esp, stack + KERNEL_STACK_SIZE
     call _kernel
     jmp $
 
@@ -50,3 +60,8 @@ _reboot:
 .halt:
     hlt
     jmp .halt
+
+section .bss
+align 4
+stack:
+    resb KERNEL_STACK_SIZE
