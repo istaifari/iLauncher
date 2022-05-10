@@ -8,7 +8,7 @@ make: *** No rule to make target 'all'.  Stop.
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Sun May  8 18:45:27 2022
+# Make data base, printed on Mon May  9 22:46:06 2022
 
 # Variables
 
@@ -17,7 +17,7 @@ GDK_BACKEND = x11
 # environment
 LC_ALL = C
 # environment
-VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-2a83d42b-2fbb-4a9b-babb-23cd67317ee4.sock
+VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-cdb02566-10f7-4df3-8d87-ab2e4847ccd3.sock
 # environment
 MANDATORY_PATH = /usr/share/gconf/xubuntu.mandatory.path
 # environment
@@ -99,7 +99,7 @@ MAKEFILE_LIST :=
 # environment
 VSCODE_VERBOSE_LOGGING = true
 # environment
-VSCODE_PID = 4513
+VSCODE_PID = 5575
 # environment
 XDG_SESSION_TYPE = x11
 # automatic
@@ -107,7 +107,7 @@ XDG_SESSION_TYPE = x11
 # environment
 CLUTTER_BACKEND = x11
 # environment
-SESSION_MANAGER = local/istaifari:@/tmp/.ICE-unix/3838,unix/istaifari:/tmp/.ICE-unix/3838
+SESSION_MANAGER = local/istaifari:@/tmp/.ICE-unix/3694,unix/istaifari:/tmp/.ICE-unix/3694
 # automatic
 *F = $(notdir $*)
 # environment
@@ -195,7 +195,7 @@ MAKE_VERSION := 4.3
 # environment
 LC_MEASUREMENT = pt_BR.UTF-8
 # environment
-GIO_LAUNCHED_DESKTOP_FILE_PID = 4513
+GIO_LAUNCHED_DESKTOP_FILE_PID = 5575
 # environment
 _ = /usr/share/code/code
 # environment
@@ -245,9 +245,9 @@ LC_IDENTIFICATION = pt_BR.UTF-8
 
 # Directories
 
-# . (device 2065, inode 4804): 8 files, no impossibilities.
+# . (device 2065, inode 4804): 9 files, no impossibilities.
 
-# 8 files, no impossibilities in 1 directories.
+# 9 files, no impossibilities in 1 directories.
 
 # Implicit Rules
 
@@ -298,12 +298,12 @@ GNUmakefile:
 
 # No general ('VPATH' variable) search path.
 
-# strcache buffers: 1 (0) / strings = 16 / storage = 150 B / avg = 9 B
-# current buf: size = 8162 B / used = 150 B / count = 16 / avg = 9 B
+# strcache buffers: 1 (0) / strings = 17 / storage = 160 B / avg = 9 B
+# current buf: size = 8162 B / used = 160 B / count = 17 / avg = 9 B
 
-# strcache performance: lookups = 19 / hit rate = 15%
+# strcache performance: lookups = 20 / hit rate = 15%
 # hash-table stats:
-# Load=16/8192=0%, Rehash=0, Collisions=0/19=0%
-# Finished Make data base on Sun May  8 18:45:27 2022
+# Load=17/8192=0%, Rehash=0, Collisions=0/20=0%
+# Finished Make data base on Mon May  9 22:46:06 2022
 
  
