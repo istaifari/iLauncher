@@ -1,5 +1,17 @@
 #include "../include/string.h"
 
+typedef struct free_block
+{
+    size_t size;
+    struct free_block *next;
+} free_block;
+
+static free_block free_block_list_head = {0, 0};
+
+// static const size_t overhead = sizeof(size_t);
+
+static const size_t align_to = 16;
+
 int strlen(char *str)
 {
     int len = 0;
@@ -16,6 +28,62 @@ void memcpy(void *dest, void *src, size_t n)
     {
         cdest[i] = csrc[i];
     }
+}
+
+void *memset(void *s, int c, unsigned int len)
+{
+    unsigned char *p = s;
+    while (len--)
+    {
+        *p++ = (unsigned char)c;
+    }
+    return s;
+}
+
+void *sbrk(int increment)
+{
+    static char global_mem[20000] = {0};
+    static char *p_break = global_mem;
+
+    char *const limit = global_mem + 20000;
+    char *const original = p_break;
+
+    if (increment < global_mem - p_break || increment >= limit - p_break)
+    {
+        return (void *)-1;
+    }
+    p_break += increment;
+
+    return original;
+}
+
+void *malloc(size_t size)
+{
+    size = (size + sizeof(free_block) + (align_to - 1)) & ~(align_to - 1);
+    free_block *block = free_block_list_head.next;
+    free_block **head = &(free_block_list_head.next);
+    while (block != 0)
+    {
+        if (block->size >= size)
+        {
+            *head = block->next;
+            return ((char *)block) + sizeof(free_block);
+        }
+        head = &(block->next);
+        block = block->next;
+    }
+
+    block = (free_block *)sbrk(size);
+    block->size = size;
+
+    return ((char *)block) + sizeof(free_block);
+}
+
+void free(void *ptr)
+{
+    free_block *block = (free_block *)(((char *)ptr) - sizeof(free_block));
+    block->next = free_block_list_head.next;
+    free_block_list_head.next = block;
 }
 
 /*void memmove(void *dest, void *src, size_t n)

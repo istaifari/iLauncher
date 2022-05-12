@@ -20,12 +20,14 @@
 #define VGA_NUM_GC_REGS 9
 #define VGA_NUM_AC_REGS 21
 #define VGA_NUM_REGS (1 + VGA_NUM_SEQ_REGS + VGA_NUM_CRTC_REGS + VGA_NUM_GC_REGS + VGA_NUM_AC_REGS)
-#define peekb(S, O) *(unsigned char *)(16uL * (S) + (O))
-#define pokeb(S, O, V) *(unsigned char *)(16uL * (S) + (O)) = (V)
-#define pokew(S, O, V) *(unsigned short *)(16uL * (S) + (O)) = (V)
+#define peekb(S, O) *(unsigned char *)(16u * (S) + (O))
+#define pokeb(S, O, V) *(unsigned char *)(16u * (S) + (O)) = (V)
+#define pokew(S, O, V) *(unsigned short *)(16u * (S) + (O)) = (V)
 #define _vmemwr(DS, DO, S, N) memcpy((char *)((DS)*16 + (DO)), S, N)
 
-unsigned vga_width, vga_height;
+unsigned vga_width, vga_height, vga_colors;
+
+unsigned char *BackBuffer;
 
 static void (*vga_putpixel)(unsigned x, unsigned y, unsigned c);
 
@@ -76,106 +78,79 @@ unsigned vpeekb(unsigned off)
 
 static void putpixel1(unsigned x, unsigned y, unsigned c)
 {
-	if (x < 0 || !(x >= vga_width))
-	{
-		if (y < 0 || !(y >= vga_height))
-		{
-			unsigned wd_in_bytes;
-			unsigned off, mask;
+	if (x < 0 || x >= vga_width || y < 0 || y >= vga_height)
+		return;
+	unsigned wd_in_bytes;
+	unsigned off, mask;
 
-			c = (c & 1) * 0xFF;
-			wd_in_bytes = vga_width / 8;
-			off = wd_in_bytes * y + x / 8;
-			x = (x & 7) * 1;
-			mask = 0x80 >> x;
-			vpokeb(off, (vpeekb(off) & ~mask) | (c & mask));
-		}
-	}
+	c = (c & 1) * 0xFF;
+	wd_in_bytes = vga_width / 8;
+	off = wd_in_bytes * y + x / 8;
+	x = (x & 7) * 1;
+	mask = 0x80 >> x;
+	vpokeb(off, (vpeekb(off) & ~mask) | (c & mask));
 }
-/*****************************************************************************
-*****************************************************************************/
+
 static void putpixel2(unsigned x, unsigned y, unsigned c)
 {
-	if (x < 0 || !(x >= vga_width))
-	{
-		if (y < 0 || !(y >= vga_height))
-		{
-			unsigned wd_in_bytes, off, mask;
+	if (x < 0 || x >= vga_width || y < 0 || y >= vga_height)
+		return;
+	unsigned wd_in_bytes, off, mask;
 
-			c = (c & 3) * 0x55;
-			wd_in_bytes = vga_width / 4;
-			off = wd_in_bytes * y + x / 4;
-			x = (x & 3) * 2;
-			mask = 0xC0 >> x;
-			vpokeb(off, (vpeekb(off) & ~mask) | (c & mask));
-		}
-	}
+	c = (c & 3) * 0x55;
+	wd_in_bytes = vga_width / 4;
+	off = wd_in_bytes * y + x / 4;
+	x = (x & 3) * 2;
+	mask = 0xC0 >> x;
+	vpokeb(off, (vpeekb(off) & ~mask) | (c & mask));
 }
-/*****************************************************************************
-*****************************************************************************/
+
 static void putpixel4p(unsigned x, unsigned y, unsigned c)
 {
-	if (x < 0 || !(x >= vga_width))
-	{
-		if (y < 0 || !(y >= vga_height))
-		{
-			unsigned wd_in_bytes, off, mask, p, pmask;
+	if (x < 0 || x >= vga_width || y < 0 || y >= vga_height)
+		return;
+	unsigned wd_in_bytes, off, mask, p, pmask;
 
-			wd_in_bytes = vga_width / 8;
-			off = wd_in_bytes * y + x / 8;
-			x = (x & 7) * 1;
-			mask = 0x80 >> x;
-			pmask = 1;
-			for (p = 0; p < 4; p++)
-			{
-				set_plane(p);
-				if (pmask & c)
-					vpokeb(off, vpeekb(off) | mask);
-				else
-					vpokeb(off, vpeekb(off) & ~mask);
-				pmask <<= 1;
-			}
-		}
+	wd_in_bytes = vga_width / 8;
+	off = wd_in_bytes * y + x / 8;
+	x = (x & 7) * 1;
+	mask = 0x80 >> x;
+	pmask = 1;
+	for (p = 0; p < 4; p++)
+	{
+		set_plane(p);
+		if (pmask & c)
+			vpokeb(off, vpeekb(off) | mask);
+		else
+			vpokeb(off, vpeekb(off) & ~mask);
+		pmask <<= 1;
 	}
 }
-/*****************************************************************************
-*****************************************************************************/
+
 static void putpixel8(unsigned x, unsigned y, unsigned c)
 {
-	if (x < 0 || !(x >= vga_width))
-	{
-		if (y < 0 || !(y >= vga_height))
-		{
-			unsigned wd_in_bytes;
-			unsigned off;
+	if (x < 0 || x >= vga_width || y < 0 || y >= vga_height)
+		return;
+	unsigned wd_in_bytes;
+	unsigned off;
 
-			wd_in_bytes = vga_width;
-			off = wd_in_bytes * y + x;
-			vpokeb(off, c);
-		}
-	}
+	wd_in_bytes = vga_width;
+	off = wd_in_bytes * y + x;
+	vpokeb(off, c);
 }
-/*****************************************************************************
-*****************************************************************************/
+
 static void putpixel8x(unsigned x, unsigned y, unsigned c)
 {
-	if (x < 0 || !(x >= vga_width))
-	{
-		if (y < 0 || !(y >= vga_height))
-		{
-			unsigned wd_in_bytes;
-			unsigned off;
+	if (x < 0 || x >= vga_width || y < 0 || y >= vga_height)
+		return;
+	unsigned wd_in_bytes;
+	unsigned off;
 
-			wd_in_bytes = vga_width / 4;
-			off = wd_in_bytes * y + x / 4;
-			set_plane(x & 3);
-			vpokeb(off, c);
-		}
-	}
+	wd_in_bytes = vga_width / 4;
+	off = wd_in_bytes * y + x / 4;
+	set_plane(x & 3);
+	vpokeb(off, c);
 }
-
-/*****************************************************************************
-*****************************************************************************/
 
 unsigned char g_40x25_text[] =
 	{
@@ -756,6 +731,8 @@ void vga_WriteResolutionRegister(unsigned char *regs)
 	}
 	(void)inb(VGA_INSTAT_READ);
 	outb(VGA_AC_INDEX, 0x20);
+	BackBuffer = ((unsigned char *)malloc(vga_width * vga_height * ((vga_colors | 7) >> 3)));
+	vga_clear();
 }
 
 void vga_drawimage(int x, int y, int w, int h, unsigned pixels[])
@@ -773,11 +750,12 @@ void vga_drawimage(int x, int y, int w, int h, unsigned pixels[])
 
 void vga_fillRect(unsigned x, unsigned y, unsigned w, unsigned h, unsigned c)
 {
-	for (int Y = y; Y < y + h; Y++)
+	long long int i = 0, l = 0;
+	for (l = 0; l < h; l++)
 	{
-		for (int X = x; X < x + w; X++)
+		for (i = 0; i < w; i++)
 		{
-			vga_putpixel(X, Y, c);
+			vga_putpixel(x + i, y + l, c);
 		}
 	}
 }
@@ -876,18 +854,6 @@ void vga_drawtext(char *text, unsigned color, unsigned x, unsigned y, unsigned c
 	}
 }
 
-void vga_clear()
-{
-	unsigned x, y;
-	for (y = 0; y < vga_height; y++)
-	{
-		for (x = 0; x < vga_width; x++)
-		{
-			vga_putpixel(x, y, 0x00);
-		}
-	}
-}
-
 unsigned vga_getresolution(int select)
 {
 	if (select == 1)
@@ -904,16 +870,36 @@ unsigned vga_getresolution(int select)
 	}
 }
 
+void SwapBuffers()
+{
+	/* Copy the contents of the back buffer to the front buffer. */
+	memcpy((char *)get_fb_seg(), BackBuffer, vga_width * vga_height * ((vga_colors | 7) >> 3));
+}
+
+void vga_clear()
+{
+	unsigned x, y;
+	for (y = 0; y < vga_height; y++)
+	{
+		for (x = 0; x < vga_width; x++)
+		{
+			//memset(BackBuffer, 0, vga_width * vga_height * ((vga_colors | 7) >> 3));
+			vga_putpixel(x, y, 0x00);
+			//SwapBuffers();
+		}
+	}
+}
+
 void vga_start()
 {
 	char *resolution = "320x200x256";
 	if (resolution == "320x200x256")
 	{
-		vga_WriteResolutionRegister(g_320x200x256);
 		vga_width = 320;
 		vga_height = 200;
+		vga_colors = 256;
 		vga_putpixel = putpixel8;
-		vga_clear();
+		vga_WriteResolutionRegister(g_320x200x256);
 	}
 	/*else if (resolution == "320x200x4")
 	{
@@ -928,15 +914,16 @@ void vga_start()
 		vga_WriteResolutionRegister(g_320x200x256_modex);
 		vga_width = 320;
 		vga_height = 200;
-		vga_putpixel = putpixel8x;
+		// vga_putpixel = putpixel8x;
 		vga_clear();
 	}
 	else if (resolution == "640x480x16")
 	{
-		vga_WriteResolutionRegister(g_640x480x16);
 		vga_width = 640;
 		vga_height = 480;
-		vga_putpixel = putpixel4p;
+		vga_colors = 16;
+		vga_WriteResolutionRegister(g_640x480x16);
+		// vga_putpixel = putpixel4p;
 		vga_clear();
 	}
 	else if (resolution == "720x480x16")
@@ -944,10 +931,9 @@ void vga_start()
 		vga_WriteResolutionRegister(g_720x480x16);
 		vga_width = 720;
 		vga_height = 480;
-		vga_putpixel = putpixel4p;
+		// vga_putpixel = putpixel4p;
 		vga_clear();
 	}
-	vga_drawtext("QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm !@#$&*()", 0x3f, 0, 0, font_8x16, 8, 16);
 	gfx_mode = true;
 	/*int icount = 0;
 	int count_x = 0;

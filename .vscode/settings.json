@@ -14,7 +14,8 @@
         "keyboard.h": "c",
         "mouse.h": "c",
         "mouse_icons.h": "c",
-        "font_8x8.h": "c"
+        "font_8x8.h": "c",
+        "fonts.h": "c"
     },
     "C_Cpp.dimInactiveRegions": false
 }

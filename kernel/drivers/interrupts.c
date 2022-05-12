@@ -1,24 +1,56 @@
 #include "../include/interrupts.h"
 
-void KeyboardInterrupt()
+#define ENABLE_PS2 0xA8
+#define KBD_STAT 0x64
+#define MOUSE 0xD4
+#define MOUSE_STREAM 0xF4
+#define MOUSE_DISABLE 0xF5
+#define KBD_CMD 0x60
+#define DISABLE_KBD 0xAD
+#define ENABLE_KBD 0xAE
+
+void CheckPort()
 {
-    PIC_EndMaster();
-    if (port_byte_read(0x64) & 0x01 && !((port_byte_read(0x64) & 0b10) == 0) && !(port_byte_read(0x64) & 0b1))
+    unsigned char temp;
+    while (true)
     {
-        SetKey(inb(0x60));
+        temp = inb(0x64);
+        if ((temp & 2) == 0)
+            return;
     }
-    PIC_EndMaster();
 }
 
-void MouseInterrupt()
+char CheckMouse()
 {
-    PIC_EndSlave();
-    if ((port_byte_read(0x64) & 0b10) == 0 && port_byte_read(0x64) & 0b1)
-    {
-        HandlePS2Mouse(inb(0x60));
-    }
-    PIC_EndSlave();
+    unsigned char temp;
+    temp = inb(0x64);
 
+    if (temp & 1)
+        return 0;
+    else
+        return 1;
+}
+
+char GetMouseByte()
+{
+    outb(0x64, 0xAD);
+    CheckPort();
+    char ret = 1;
+    while (ret)
+        ret = CheckMouse();
+    MouseWait();
+    ret = inb(0x60);
+    outb(0x64, 0xAE);
+    CheckPort();
+    PIC_EndMaster();
+    return ret;
+}
+
+void MouseAndKeyboard_FixUpdate()
+{
+    uint8_t MouseData = GetMouseByte();
+    HandlePS2Mouse(MouseData);
+    PIC_EndSlave();
 }
 
 void PIC_EndMaster()

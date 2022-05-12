@@ -6,7 +6,7 @@ LD_SOURCES := *.o
 LD_ARCH := melf_i386
 ASM_ARCH := felf32
 ASM_BOOT_ARCH := fbin
-QEMU_ARCH := i386 -m 128M # -usbdevice keyboard
+QEMU_ARCH := i386 #-m 128M -usbdevice mouse
 
 default: emu
 
@@ -15,9 +15,9 @@ default: emu
 all:
 	nasm -$(ASM_BOOT_ARCH) ../boot/bootloader.S -o bootloader.bin || echo Unknown Error!
 	nasm -$(ASM_ARCH) boot.S || echo Unknown Error!
-	gcc -ffreestanding -fno-stack-protector -fno-pie -fno-leading-underscore -c -g -Os $(C_SOURCES_1) -$(GCC_ARCH) || echo Unknown Error!
-	gcc -ffreestanding -fno-stack-protector -fno-pie -fno-leading-underscore -c -g -Os $(C_SOURCES_2) -$(GCC_ARCH) || echo Unknown Error!
-	gcc -ffreestanding -fno-stack-protector -fno-pie -fno-leading-underscore -c -g -Os $(C_SOURCES_3) -$(GCC_ARCH) || echo Unknown Error!
+	gcc -ffreestanding -fno-stack-protector -mgeneral-regs-only -mno-red-zone -fno-pie -fno-leading-underscore -c -g -Os $(C_SOURCES_1) -$(GCC_ARCH) || echo Unknown Error!
+	gcc -ffreestanding -fno-stack-protector -mgeneral-regs-only -mno-red-zone -fno-pie -fno-leading-underscore -c -g -Os $(C_SOURCES_2) -$(GCC_ARCH) || echo Unknown Error!
+	gcc -ffreestanding -fno-stack-protector -mgeneral-regs-only -mno-red-zone -fno-pie -fno-leading-underscore -c -g -Os $(C_SOURCES_3) -$(GCC_ARCH) || echo Unknown Error!
 	ld -$(LD_ARCH) -Tlinker.ld -nostdlib $(LD_SOURCES) -o kernel.bin || echo Unknown Error!
 	cp kernel.bin ../OS_Files/boot/kernel.bin
 	grub-mkrescue -o ../ilauncher.iso ../OS_Files || echo Unknown Error!

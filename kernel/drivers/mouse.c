@@ -8,24 +8,9 @@
 #define PS2XOverflow 0b01000000
 #define PS2YOverflow 0b10000000
 
-typedef struct
-{
-    long x;
-    long y;
-    long x_old;
-    long y_old;
-    long width;
-    long height;
-    long Sensitivity;
-    /*bool OnMouseMove;*/
-    bool OnMouseDown_Left;
-    bool OnMouseDown_Middle;
-    bool OnMouseDown_Right;
-} __attribute__((packed)) MouseInfo;
-
 void MouseWait()
 {
-    uint64_t timeout = 100000;
+    long timeout = 100000;
     while (timeout--)
     {
         if ((port_byte_read(0x64) & 0b10) == 0)
@@ -37,7 +22,7 @@ void MouseWait()
 
 void MouseWaitInput()
 {
-    uint64_t timeout = 100000;
+    long timeout = 100000;
     while (timeout--)
     {
         if (port_byte_read(0x64) & 0b1)
@@ -94,7 +79,6 @@ void HandlePS2Mouse(uint8_t data)
         MouseCycle = 0;
         break;
     }
-    ProcessMousePacket();
 }
 
 void ProcessMousePacket()
@@ -107,26 +91,8 @@ void ProcessMousePacket()
     {
         Mouse.OnMouseMove = false;
     }*/
-
-    unsigned MousePointer_Clear_12x16[] = {
-        0x00,0x40,0x40,0x40,0x40,0x40,0x40,0x40,0x40,0x40,0x40,0x40,
-        0x00,0x00,0x40,0x40,0x40,0x40,0x40,0x40,0x40,0x40,0x40,0x40,
-        0x00,0x00,0x00,0x40,0x40,0x40,0x40,0x40,0x40,0x40,0x40,0x40,
-        0x00,0x00,0x00,0x00,0x40,0x40,0x40,0x40,0x40,0x40,0x40,0x40,
-        0x00,0x00,0x00,0x00,0x00,0x40,0x40,0x40,0x40,0x40,0x40,0x40,
-        0x00,0x00,0x00,0x00,0x00,0x00,0x40,0x40,0x40,0x40,0x40,0x40,
-        0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x40,0x40,0x40,0x40,0x40,
-        0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x40,0x40,0x40,0x40,
-        0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x40,0x40,0x40,
-        0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x40,0x40,
-        0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x40,
-        0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-        0x00,0x00,0x00,0x00,0x00,0x40,0x40,0x40,0x40,0x40,0x40,0x40,
-        0x00,0x00,0x00,0x00,0x40,0x40,0x40,0x40,0x40,0x40,0x40,0x40,
-        0x00,0x00,0x00,0x40,0x40,0x40,0x40,0x40,0x40,0x40,0x40,0x40,
-        0x00,0x00,0x40,0x40,0x40,0x40,0x40,0x40,0x40,0x40,0x40,0x40,
-    };
-
+    ClearMouse();
+    vga_drawimage(Mouse.x, Mouse.y, Mouse.width, Mouse.height, MousePointer_24x32);
     if (!MousePacketReady)
         return;
 
@@ -204,8 +170,6 @@ void ProcessMousePacket()
         Mouse.x += MousePacket[1];
         if (xOverflow)
             Mouse.x += Mouse.Sensitivity;
-        if (Mouse.x != Mouse.x_old)
-            vga_drawimage(Mouse.x_old, Mouse.y_old, Mouse.width, Mouse.height, MousePointer_Clear_12x16);
     }
     else
     {
@@ -213,8 +177,6 @@ void ProcessMousePacket()
         Mouse.x -= MousePacket[1];
         if (xOverflow)
             Mouse.x -= Mouse.Sensitivity;
-        if (Mouse.x != Mouse.x_old)
-            vga_drawimage(Mouse.x_old, Mouse.y_old, Mouse.width, Mouse.height, MousePointer_Clear_12x16);
     }
 
     if (!yNegative)
@@ -222,8 +184,6 @@ void ProcessMousePacket()
         Mouse.y -= MousePacket[2];
         if (yOverflow)
             Mouse.y -= Mouse.Sensitivity;
-        if (Mouse.y != Mouse.y_old)
-            vga_drawimage(Mouse.x_old, Mouse.y_old, Mouse.width, Mouse.height, MousePointer_Clear_12x16);
     }
     else
     {
@@ -231,8 +191,6 @@ void ProcessMousePacket()
         Mouse.y += MousePacket[2];
         if (yOverflow)
             Mouse.y += Mouse.Sensitivity;
-        if (Mouse.y != Mouse.y_old)
-            vga_drawimage(Mouse.x_old, Mouse.y_old, Mouse.width, Mouse.height, MousePointer_Clear_12x16);
     }
 
     /*if (Mouse.x != Mouse.x_old || Mouse.y != Mouse.y_old || Mouse.x != Mouse.x || Mouse.y != Mouse.y)
@@ -243,7 +201,6 @@ void ProcessMousePacket()
     {
         Mouse.OnMouseMove = false;
     }*/
-
     if (Mouse.x < 0)
         Mouse.x = 0;
     if (Mouse.x >= vga_getresolution(1))
@@ -271,6 +228,11 @@ void InitPS2Mouse()
     MouseRead();
     MouseWrite(0xF4);
     MouseRead();
+
+    /*MouseWait();
+    outportb( 0x60, 0xF4 );
+    CheckPort();
+    CheckMouse();*/
 }
 
 long int GetMouseInfo(int offset_pos)
@@ -283,10 +245,20 @@ long int GetMouseInfo(int offset_pos)
         return 0;
 }
 
+void ClearMouse()
+{
+    if (!MousePacketReady)
+        return;
+    if (Mouse.x != Mouse.x_old)
+        vga_drawimage(Mouse.x_old, Mouse.y_old, Mouse.width, Mouse.height, MousePointer_Clear_24x32);
+    if (Mouse.y != Mouse.y_old)
+        vga_drawimage(Mouse.x_old, Mouse.y_old, Mouse.width, Mouse.height, MousePointer_Clear_24x32);
+}
+
 void MouseSetup()
 {
-    Mouse.width = 12;
-    Mouse.height = 16;
+    Mouse.width = 24;
+    Mouse.height = 32;
     Mouse.x = (vga_getresolution(1) - Mouse.width) / 2;
     Mouse.y = (vga_getresolution(2) - Mouse.height) / 2;
     Mouse.x_old = Mouse.x;
@@ -294,15 +266,15 @@ void MouseSetup()
     InitPS2Mouse();
     while (4)
     {
+        unsigned txtcolor = 0x3f;
+        //memset(BackBuffer, 0, vga_width * vga_height * ((vga_colors | 7) >> 3));
         /*if (GetKey() == 35)
         {
             _reboot();
         }*/
-        KeyboardInterrupt();
-        MouseInterrupt();
         if (Mouse.OnMouseDown_Left)
         {
-            vga_fillRect(Mouse.x - 1, Mouse.y - 1, 32, 32, 0x3f);
+            txtcolor = 0x02;
         }
         else if (Mouse.OnMouseDown_Middle)
         {
@@ -311,9 +283,10 @@ void MouseSetup()
         }
         else if (Mouse.OnMouseDown_Right)
         {
-            vga_fillRect(Mouse.x - 1, Mouse.y - 1, 32, 32, 0x00);
+            txtcolor = 0x04;
         }
-        //vga_drawimage(Mouse.x, Mouse.y, Mouse.width, Mouse.height, MousePointer_Clear_12x16);
-        vga_drawimage(Mouse.x, Mouse.y, Mouse.width, Mouse.height, MousePointer_12x16);
+        vga_drawtext("QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm0123456789!@#$&*()", txtcolor, 0, 0, font_8x16, 8, 16);
+        ProcessMousePacket();
+        MouseAndKeyboard_FixUpdate();
     }
 }
