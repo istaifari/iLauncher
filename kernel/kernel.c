@@ -128,8 +128,8 @@ void _kernel_echo(char *echo_direct, bool use_c_par)
 
 void _kernel_gfx_mode()
 {
-    vga_start();
     MouseSetup();
+    vga_start();
 }
 
 void _kernel()
@@ -138,7 +138,7 @@ void _kernel()
     clear_screen();
     if (line_inf)
         printtext("\f", 0x0f, 0);
-    int buf_size = 80 * 25;
+    int buf_size = 32;
     char buf[buf_size];
     while (4)
     {

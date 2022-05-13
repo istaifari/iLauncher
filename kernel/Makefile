@@ -6,7 +6,7 @@ LD_SOURCES := *.o
 LD_ARCH := melf_i386
 ASM_ARCH := felf32
 ASM_BOOT_ARCH := fbin
-QEMU_ARCH := i386 #-m 128M -usbdevice mouse
+QEMU_ARCH := i386 #-m 16M -usbdevice mouse
 
 default: emu
 

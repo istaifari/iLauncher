@@ -15,7 +15,7 @@ void CheckPort()
     while (true)
     {
         temp = inb(0x64);
-        if ((temp & 2) == 0)
+        if ((temp & 2) <= 3)
             return;
     }
 }
@@ -24,31 +24,27 @@ char CheckMouse()
 {
     unsigned char temp;
     temp = inb(0x64);
-
-    if (temp & 1)
+    if (temp & 0b1)
         return 0;
     else
         return 1;
 }
 
-char GetMouseByte()
+char GetByte()
 {
     outb(0x64, 0xAD);
     CheckPort();
     char ret = 1;
     while (ret)
         ret = CheckMouse();
-    MouseWait();
+    //MouseWait();
     ret = inb(0x60);
-    outb(0x64, 0xAE);
-    CheckPort();
-    PIC_EndMaster();
     return ret;
 }
 
-void MouseAndKeyboard_FixUpdate()
+void MouseInterrupt()
 {
-    uint8_t MouseData = GetMouseByte();
+    uint8_t MouseData = GetByte();
     HandlePS2Mouse(MouseData);
     PIC_EndSlave();
 }

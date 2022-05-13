@@ -16,6 +16,7 @@
 #include "include/video.h"
 #include "include/stdio.h"
 #include "include/keyboard.h"
+#include "include/gui.h"
 
 extern void _poweroff();
 extern void _reboot();

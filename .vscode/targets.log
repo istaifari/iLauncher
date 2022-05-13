@@ -2,13 +2,15 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 make: *** No rule to make target 'all'.  Stop.
 
 # GNU Make 4.3
+ 
 # Built for x86_64-pc-linux-gnu
+ 
 # Copyright (C) 1988-2020 Free Software Foundation, Inc.
 # License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Wed May 11 16:40:38 2022
+# Make data base, printed on Fri May 13 20:23:53 2022
 
 # Variables
 
@@ -17,7 +19,7 @@ GDK_BACKEND = x11
 # environment
 LC_ALL = C
 # environment
-VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-1d1e4c11-e8c3-4145-b6f5-b443bc35b84e.sock
+VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-87babc03-bafa-42a2-ac1c-085aeac6d583.sock
 # environment
 MANDATORY_PATH = /usr/share/gconf/xubuntu.mandatory.path
 # environment
@@ -55,7 +57,6 @@ XDG_DATA_DIRS = /usr/share/xfce4:/usr/share/xubuntu:/usr/share/gnome:/home/istai
 # environment
 VSCODE_LOG_STACK = false
 # automatic
- 
 %F = $(notdir $%)
 # environment
 VSCODE_CODE_CACHE_PATH = /home/istaifari/.config/Code/CachedData/da15b6fd3ef856477bf6f4fb29ba1b7af717770d
@@ -100,7 +101,7 @@ MAKEFILE_LIST :=
 # environment
 VSCODE_VERBOSE_LOGGING = true
 # environment
-VSCODE_PID = 5941
+VSCODE_PID = 5530
 # environment
 XDG_SESSION_TYPE = x11
 # automatic
@@ -108,7 +109,7 @@ XDG_SESSION_TYPE = x11
 # environment
 CLUTTER_BACKEND = x11
 # environment
-SESSION_MANAGER = local/istaifari:@/tmp/.ICE-unix/5252,unix/istaifari:/tmp/.ICE-unix/5252
+SESSION_MANAGER = local/istaifari:@/tmp/.ICE-unix/3669,unix/istaifari:/tmp/.ICE-unix/3669
 # automatic
 *F = $(notdir $*)
 # environment
@@ -120,7 +121,7 @@ DBUS_SESSION_BUS_ADDRESS = unix:path=/run/user/1000/bus
 # automatic
 <D = $(patsubst %/,%,$(dir $<))
 # environment
-VSCODE_NLS_CONFIG = {"locale":"pt-br","availableLanguages":{"*":"pt-br"},"_languagePackId":"87bc42524dcd0342864b21d9918adfb2.pt-br","_translationsConfigFile":"/home/istaifari/.config/Code/clp/87bc42524dcd0342864b21d9918adfb2.pt-br/tcf.json","_cacheRoot":"/home/istaifari/.config/Code/clp/87bc42524dcd0342864b21d9918adfb2.pt-br","_resolvedLanguagePackCoreLocation":"/home/istaifari/.config/Code/clp/87bc42524dcd0342864b21d9918adfb2.pt-br/da15b6fd3ef856477bf6f4fb29ba1b7af717770d","_corruptedFile":"/home/istaifari/.config/Code/clp/87bc42524dcd0342864b21d9918adfb2.pt-br/corrupted.info","_languagePackSupport":true}
+VSCODE_NLS_CONFIG = {"locale":"pt-br","availableLanguages":{"*":"pt-br"},"_languagePackId":"74ce6549a467d1dfaba55fb5394742c9.pt-br","_translationsConfigFile":"/home/istaifari/.config/Code/clp/74ce6549a467d1dfaba55fb5394742c9.pt-br/tcf.json","_cacheRoot":"/home/istaifari/.config/Code/clp/74ce6549a467d1dfaba55fb5394742c9.pt-br","_resolvedLanguagePackCoreLocation":"/home/istaifari/.config/Code/clp/74ce6549a467d1dfaba55fb5394742c9.pt-br/da15b6fd3ef856477bf6f4fb29ba1b7af717770d","_corruptedFile":"/home/istaifari/.config/Code/clp/74ce6549a467d1dfaba55fb5394742c9.pt-br/corrupted.info","_languagePackSupport":true}
 # default
 MAKE_HOST := x86_64-pc-linux-gnu
 # makefile
@@ -133,7 +134,6 @@ XMODIFIERS = @im=ibus
 SHLVL = 0
 # environment
 MAKELEVEL := 0
- 
 # default
 MAKE = $(MAKE_COMMAND)
 # environment
@@ -197,7 +197,7 @@ MAKE_VERSION := 4.3
 # environment
 LC_MEASUREMENT = pt_BR.UTF-8
 # environment
-GIO_LAUNCHED_DESKTOP_FILE_PID = 5941
+GIO_LAUNCHED_DESKTOP_FILE_PID = 5530
 # environment
 _ = /usr/share/code/code
 # environment
@@ -283,6 +283,7 @@ makefile:
 #  File does not exist.
 #  File has been updated.
 #  Failed to be updated.
+ 
 
 # Not a target:
 GNUmakefile:
@@ -305,6 +306,6 @@ GNUmakefile:
 # strcache performance: lookups = 20 / hit rate = 15%
 # hash-table stats:
 # Load=17/8192=0%, Rehash=0, Collisions=0/20=0%
-# Finished Make data base on Wed May 11 16:40:38 2022
+# Finished Make data base on Fri May 13 20:23:53 2022
 
  

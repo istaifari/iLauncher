@@ -48,8 +48,8 @@ uint8_t MouseRead()
 
 uint8_t MouseCycle = 0;
 uint8_t MousePacket[4];
-bool MousePacketReady = false;
 MouseInfo Mouse;
+bool MousePacketReady = false;
 
 void ProcessMousePacket();
 
@@ -83,16 +83,33 @@ void HandlePS2Mouse(uint8_t data)
 
 void ProcessMousePacket()
 {
-    /*if (Mouse.x != Mouse.x_old || Mouse.y != Mouse.y_old || Mouse.x != Mouse.x || Mouse.y != Mouse.y)
+    if (MousePacket[0] & PS2Leftbutton)
     {
-        Mouse.OnMouseMove = true;
+        Mouse.OnMouseDown_Left = true;
     }
     else
     {
-        Mouse.OnMouseMove = false;
-    }*/
-    ClearMouse();
-    vga_drawimage(Mouse.x, Mouse.y, Mouse.width, Mouse.height, MousePointer_24x32);
+        Mouse.OnMouseDown_Left = false;
+    }
+
+    if (MousePacket[0] & PS2Middlebutton)
+    {
+        Mouse.OnMouseDown_Middle = true;
+    }
+    else
+    {
+        Mouse.OnMouseDown_Middle = false;
+    }
+
+    if (MousePacket[0] & PS2Rightbutton)
+    {
+        Mouse.OnMouseDown_Right = true;
+    }
+    else
+    {
+        Mouse.OnMouseDown_Right = false;
+    }
+
     if (!MousePacketReady)
         return;
 
@@ -136,33 +153,6 @@ void ProcessMousePacket()
     else
     {
         yOverflow = false;
-    }
-
-    if (MousePacket[0] & PS2Leftbutton)
-    {
-        Mouse.OnMouseDown_Left = true;
-    }
-    else
-    {
-        Mouse.OnMouseDown_Left = false;
-    }
-
-    if (MousePacket[0] & PS2Middlebutton)
-    {
-        Mouse.OnMouseDown_Middle = true;
-    }
-    else
-    {
-        Mouse.OnMouseDown_Middle = false;
-    }
-
-    if (MousePacket[0] & PS2Rightbutton)
-    {
-        Mouse.OnMouseDown_Right = true;
-    }
-    else
-    {
-        Mouse.OnMouseDown_Right = false;
     }
 
     if (!xNegative)
@@ -228,7 +218,6 @@ void InitPS2Mouse()
     MouseRead();
     MouseWrite(0xF4);
     MouseRead();
-
     /*MouseWait();
     outportb( 0x60, 0xF4 );
     CheckPort();
@@ -245,48 +234,7 @@ long int GetMouseInfo(int offset_pos)
         return 0;
 }
 
-void ClearMouse()
-{
-    if (!MousePacketReady)
-        return;
-    if (Mouse.x != Mouse.x_old)
-        vga_drawimage(Mouse.x_old, Mouse.y_old, Mouse.width, Mouse.height, MousePointer_Clear_24x32);
-    if (Mouse.y != Mouse.y_old)
-        vga_drawimage(Mouse.x_old, Mouse.y_old, Mouse.width, Mouse.height, MousePointer_Clear_24x32);
-}
-
 void MouseSetup()
 {
-    Mouse.width = 24;
-    Mouse.height = 32;
-    Mouse.x = (vga_getresolution(1) - Mouse.width) / 2;
-    Mouse.y = (vga_getresolution(2) - Mouse.height) / 2;
-    Mouse.x_old = Mouse.x;
-    Mouse.y_old = Mouse.y;
     InitPS2Mouse();
-    while (4)
-    {
-        unsigned txtcolor = 0x3f;
-        //memset(BackBuffer, 0, vga_width * vga_height * ((vga_colors | 7) >> 3));
-        /*if (GetKey() == 35)
-        {
-            _reboot();
-        }*/
-        if (Mouse.OnMouseDown_Left)
-        {
-            txtcolor = 0x02;
-        }
-        else if (Mouse.OnMouseDown_Middle)
-        {
-            Mouse.OnMouseDown_Middle = false;
-            _reboot();
-        }
-        else if (Mouse.OnMouseDown_Right)
-        {
-            txtcolor = 0x04;
-        }
-        vga_drawtext("QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm0123456789!@#$&*()", txtcolor, 0, 0, font_8x16, 8, 16);
-        ProcessMousePacket();
-        MouseAndKeyboard_FixUpdate();
-    }
 }
