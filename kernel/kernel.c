@@ -134,6 +134,7 @@ void _kernel_gfx_mode()
 
 void _kernel()
 {
+    gdt_install();
     _kernel_gfx_mode();
     clear_screen();
     if (line_inf)

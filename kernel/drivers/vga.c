@@ -28,9 +28,9 @@
 unsigned vga_width, vga_height, vga_bpp, vga_depth, vga_pitch, vga_bufsize;
 
 unsigned char *vga_memory;
-unsigned char vga_backbuffer[1080 * 1080];
+unsigned char *vga_backbuffer;
 
-static void (*vga_putpixel)(unsigned x, unsigned y, unsigned c);
+static void (*vga_putpixel)(long x, long y, unsigned c);
 
 static unsigned get_fb_seg(void)
 {
@@ -50,7 +50,7 @@ static unsigned get_fb_seg(void)
 	}
 }
 
-static void set_plane(unsigned p)
+static void set_plane(long p)
 {
 	unsigned char pmask;
 	p &= 3;
@@ -61,11 +61,11 @@ static void set_plane(unsigned p)
 	outb(VGA_SEQ_DATA, pmask);
 }
 
-static void putpixel8(unsigned x, unsigned y, unsigned c)
+static void putpixel8(long x, long y, unsigned c)
 {
 	if (x < 0 || x >= vga_width || y < 0 || y >= vga_height)
 		return;
-	unsigned pos, mask, pmask;
+	long pos, mask, pmask;
 	if (vga_bpp == 8)
 	{
 		pos = y * vga_width + x;
@@ -77,34 +77,28 @@ static void putpixel8(unsigned x, unsigned y, unsigned c)
 		x = (x & 7) * 1;
 		mask = 0x80 >> x;
 		pmask = 1;
-		for (int p = 0; p < 4; p++)
-		{
-			set_plane(p);
-			if (pmask & c)
-				vga_backbuffer[pos] = c | mask;
-			else
-				vga_backbuffer[pos] = c & ~mask;
-			pmask <<= 1;
-		}
+		vga_backbuffer[pos] = (c & mask) | vga_backbuffer[pos];
 	}
 }
 
-void vga_drawimage(int x, int y, int w, int h, unsigned pixels[])
+void vga_drawimage(long x, long y, long w, long h, const unsigned *pixels)
 {
-	long long int i = 0, l = 0, j = 0;
+	long i = 0, l = 0, j = 0;
 	for (l = j = 0; l < h; l++)
 	{
 		for (i = 0; i < w; i++, j++)
 		{
 			if (pixels[j] != 0x40)
+			{
 				vga_putpixel(x + i, y + l, pixels[j]);
+			}
 		}
 	}
 }
 
-void vga_fillRect(unsigned x, unsigned y, unsigned w, unsigned h, unsigned c)
+void vga_fillRect(long x, long y, long w, long h, unsigned c)
 {
-	long long int i = 0, l = 0;
+	long i = 0, l = 0;
 	for (l = 0; l < h; l++)
 	{
 		for (i = 0; i < w; i++)
@@ -114,7 +108,7 @@ void vga_fillRect(unsigned x, unsigned y, unsigned w, unsigned h, unsigned c)
 	}
 }
 
-void vga_drawchar(char chr, unsigned x, unsigned y, unsigned c, unsigned char font[], unsigned font_w, unsigned font_h, bool flip)
+void vga_drawchar(char chr, long x, long y, unsigned c, unsigned char font[], long font_w, long font_h, bool flip)
 {
 	int cx, cy;
 	int mask[8];
@@ -152,13 +146,13 @@ void vga_drawchar(char chr, unsigned x, unsigned y, unsigned c, unsigned char fo
 	}
 }
 
-void vga_drawtext(char *text, unsigned color, unsigned x, unsigned y, unsigned char font[], unsigned font_w, unsigned font_h)
+void vga_drawtext(char *text, unsigned color, long x, long y, unsigned char font[], long font_w, long font_h)
 {
 	long i, x_pos, y_pos, col, row, stop;
 	char chr;
 
-	int len = strlen(text);
-	int font_width = font_w, font_height = font_h;
+	long len = strlen(text);
+	long font_width = font_w, font_height = font_h;
 	row = 0;
 	col = 0;
 	stop = 0;
@@ -224,9 +218,8 @@ unsigned vga_getresolution(int select)
 	}
 }
 
-void SwapBuffers()
+void vga_swapbuffers()
 {
-	/* Copy the contents of the back buffer to the front buffer. */
 	memcpy(vga_memory, vga_backbuffer, vga_bufsize);
 }
 
@@ -238,8 +231,9 @@ void vga_setupFramebuffer(unsigned ScreenWidth, unsigned ScreenHeight, unsigned 
 	vga_depth = (vga_bpp | 7) >> 3;
 	vga_pitch = vga_width * vga_depth;
 	vga_bufsize = vga_pitch * vga_height;
-	vga_memory = ((unsigned char *)get_fb_seg());
-	// vga_backbuffer = ((unsigned char *)malloc(vga_width * vga_height));
+	vga_memory = (unsigned char *)get_fb_seg();
+	vga_backbuffer = (unsigned char *)vga_bufsize;
+	return;
 }
 
 void vga_WriteResolutionRegister(unsigned char *regs, unsigned w, unsigned h, unsigned c)
@@ -362,34 +356,16 @@ void vga_update()
 	while (1)
 	{
 		vga_clear(0x01);
-		if (Mouse.OnMouseDown_Left)
-		{
-			/* Mouse Left */
-			if (window.visible)
-			{
-				window.x = Mouse.x;
-				window.y = Mouse.y;
-			}
-		}
-		else if (Mouse.OnMouseDown_Middle)
-		{
-			/* Mouse Middle */
-		}
-		else if (Mouse.OnMouseDown_Right)
-		{
-			/* Mouse Right */
-			Mouse.OnMouseDown_Right = false;
-			if (window.visible)
-				window.visible = false;
-			else
-				window.visible = true;
-		}
+		gui_window_update(&window);
 		gui_window_paint(&window);
+		gui_window_draw(&window);
 		vga_drawimage(Mouse.x, Mouse.y, Mouse.width, Mouse.height, MousePointer_24x32);
-		ProcessMousePacket();
-		SwapBuffers();
+		vga_swapbuffers();
 
 		/* Mouse Interrupt */
+		ProcessMousePacket();
 		MouseInterrupt();
 	}
+	while (1)
+		;
 }

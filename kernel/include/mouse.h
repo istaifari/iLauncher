@@ -12,7 +12,7 @@ typedef struct MouseInfo
     long width;
     long height;
     long Sensitivity;
-    /*bool OnMouseMove;*/
+    bool OnMouseMove;
     bool OnMouseDown_Left;
     bool OnMouseDown_Middle;
     bool OnMouseDown_Right;

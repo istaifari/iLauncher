@@ -160,6 +160,7 @@ void ProcessMousePacket()
         Mouse.x += MousePacket[1];
         if (xOverflow)
             Mouse.x += Mouse.Sensitivity;
+        Mouse.OnMouseMove = true;
     }
     else
     {
@@ -167,6 +168,7 @@ void ProcessMousePacket()
         Mouse.x -= MousePacket[1];
         if (xOverflow)
             Mouse.x -= Mouse.Sensitivity;
+        Mouse.OnMouseMove = true;
     }
 
     if (!yNegative)
@@ -174,6 +176,7 @@ void ProcessMousePacket()
         Mouse.y -= MousePacket[2];
         if (yOverflow)
             Mouse.y -= Mouse.Sensitivity;
+        Mouse.OnMouseMove = true;
     }
     else
     {
@@ -181,6 +184,7 @@ void ProcessMousePacket()
         Mouse.y += MousePacket[2];
         if (yOverflow)
             Mouse.y += Mouse.Sensitivity;
+        Mouse.OnMouseMove = true;
     }
 
     /*if (Mouse.x != Mouse.x_old || Mouse.y != Mouse.y_old || Mouse.x != Mouse.x || Mouse.y != Mouse.y)
@@ -191,15 +195,16 @@ void ProcessMousePacket()
     {
         Mouse.OnMouseMove = false;
     }*/
-    if (Mouse.x < 0)
-        Mouse.x = 0;
-    if (Mouse.x >= vga_getresolution(1))
-        Mouse.x = vga_getresolution(1) - 1;
-    if (Mouse.y < 0)
-        Mouse.y = 0;
-    if (Mouse.y >= vga_getresolution(2))
-        Mouse.y = vga_getresolution(2) - 1;
+    if (Mouse.x < -1)
+        Mouse.x = -1;
+    if (Mouse.y < -1)
+        Mouse.y = -1;
+    if (Mouse.x >= (long)vga_getresolution(1))
+        Mouse.x = (long)vga_getresolution(1) - 1;
+    if (Mouse.y >= (long)vga_getresolution(2))
+        Mouse.y = (long)vga_getresolution(2) - 1;
     MousePacketReady = false;
+    Mouse.OnMouseMove = false;
 }
 
 void InitPS2Mouse()
