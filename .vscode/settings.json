@@ -15,7 +15,27 @@
         "mouse.h": "c",
         "mouse_icons.h": "c",
         "font_8x8.h": "c",
-        "fonts.h": "c"
+        "fonts.h": "c",
+        "idt.h": "c",
+        "pic.h": "c",
+        "queue.h": "c",
+        "mm.h": "c",
+        "aspace.h": "c",
+        "fs.h": "c",
+        "initrd.h": "c",
+        "kheap.h": "c",
+        "ordered_array.h": "c",
+        "acpi.h": "c",
+        "ehci.h": "c",
+        "usb.h": "c",
+        "registry.h": "c",
+        "driver.h": "c",
+        "gui.h": "c",
+        "task.h": "c",
+        "image.h": "c",
+        "stb_image.h": "c",
+        "tarfs.h": "c",
+        "clock.h": "c"
     },
     "C_Cpp.dimInactiveRegions": false
 }

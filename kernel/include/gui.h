@@ -4,7 +4,6 @@
 typedef struct Window
 {
     bool isSetup;
-    int id;
     long x;
     long y;
     long width;
@@ -14,8 +13,6 @@ typedef struct Window
     long bottom;
     long buttons_width;
     bool visible;
-    int* z_order;
-    int* tree;
     bool OnMouseDown_Left;
     bool OnMouseDown_Middle;
     bool OnMouseDown_Right;

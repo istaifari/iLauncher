@@ -8,10 +8,10 @@ int get_cursor_pos()
 	if (cursor_pos == -1)
 	{
 		cursor_pos = 0;
-		port_byte_write(VIDEO_CONTROL_PIN, 14);
-		cursor_pos = port_byte_read(VIDEO_DATA_PIN) << 8;
-		port_byte_write(VIDEO_CONTROL_PIN, 15);
-		cursor_pos += port_byte_read(VIDEO_DATA_PIN);
+		outb(VIDEO_CONTROL_PIN, 14);
+		cursor_pos = inb(VIDEO_DATA_PIN) << 8;
+		outb(VIDEO_CONTROL_PIN, 15);
+		cursor_pos += inb(VIDEO_DATA_PIN);
 	}
 	return cursor_pos;
 }
@@ -20,10 +20,10 @@ void set_cursor_pos(int x, int y)
 {
 	int pos = y * 80 + x;
 	cursor_pos = pos;
-	port_byte_write(0x3D4, 14);
-	port_byte_write(0x3D5, pos >> 8);
-	port_byte_write(0x3D4, 15);
-	port_byte_write(0x3D5, pos);
+	outb(0x3D4, 14);
+	outb(0x3D5, pos >> 8);
+	outb(0x3D4, 15);
+	outb(0x3D5, pos);
 }
 
 void clear_screen()
@@ -38,8 +38,6 @@ void clear_screen()
 			screen += 2;
 		}
 		set_cursor_pos(0, 0);
-		printtext(os_name, 0x0f, 0);
-		printtext(" Shell ", 0x0f, 0);
 		printtext(os_version, 0x0f, 0);
 		next_line(0);
 	}
@@ -135,7 +133,7 @@ void next_line(int usr)
 	{
 		printtext(user_name, 0x02, 0);
 		printtext("@", 0x02, 0);
-		printtext(os_name, 0x02, 0);
+		printtext(pc_name, 0x02, 0);
 		printtext(":", 0x0f, 0);
 		printtext(current_dir, 0x09, 0);
 		printtext("$ ", 0x0f, 0);

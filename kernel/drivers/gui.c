@@ -74,6 +74,7 @@ void gui_window_update(Window *obj)
     else if (Mouse.OnMouseDown_Right)
     {
         /* Mouse Right */
+        Mouse.OnMouseDown_Right = false;
         if (obj->visible)
             obj->visible = false;
         else
@@ -91,7 +92,7 @@ void gui_window_paint(Window *obj)
         vga_fillRect((unsigned)obj->x + obj->left_right, (unsigned)obj->y + obj->top, (unsigned)obj->width, (unsigned)obj->height, 0x00);
 
         vga_fillRect((unsigned)obj->x - 15 + obj->width + obj->left_right, (unsigned)obj->y + obj->top - 12, 15, 11, 0x04);
-        vga_drawtext("x", 0x3f, (unsigned)obj->x + obj->width - 11 + obj->left_right, (unsigned)obj->y + obj->top - 11, font_8x8, 8, 8);
+        vga_drawtext("x", (unsigned)obj->x + obj->width - 11 + obj->left_right, (unsigned)obj->y + obj->top - 11, 0x3f, font_8x8, 8, 8);
     }
 }
 
@@ -103,6 +104,6 @@ void gui_window_draw(Window *obj)
         return;
     long offsetX = obj->x + obj->left_right;
     long offsetY = obj->y + obj->top;
-    vga_drawtext("Hello World!", color, offsetX + 2, offsetY + 2, font_8x8, 8, 8);
-    color = rand(0x01,0x3f);
+    color = rand() % 0x3f + 0x02;
+    vga_drawtext("Hello World!", offsetX + 2, offsetY + 2, color, font_8x8, 8, 8);
 }

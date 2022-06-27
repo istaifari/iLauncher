@@ -1,49 +1,45 @@
 #include "../include/mouse.h"
 
-#define PS2Leftbutton 0b00000001
-#define PS2Middlebutton 0b00000100
-#define PS2Rightbutton 0b00000010
+#define PS2Leftbutton 0x01
+#define PS2Middlebutton 0x04
+#define PS2Rightbutton 0x02
 #define PS2XSign 0b00010000
 #define PS2YSign 0b00100000
-#define PS2XOverflow 0b01000000
-#define PS2YOverflow 0b10000000
+#define PS2XOverflow 0x80
+#define PS2YOverflow 0x40
 
-void MouseWait()
+void MouseWait(int a_type)
 {
     long timeout = 100000;
-    while (timeout--)
-    {
-        if ((port_byte_read(0x64) & 0b10) == 0)
-        {
-            return;
-        }
-    }
-}
-
-void MouseWaitInput()
-{
-    long timeout = 100000;
-    while (timeout--)
-    {
-        if (port_byte_read(0x64) & 0b1)
-        {
-            return;
-        }
-    }
+	if (!a_type) {
+		while (--timeout) {
+			if ((inb(0x64) & 0x01) == 1) {
+				return;
+			}
+		}
+		return;
+	} else {
+		while (--timeout) {
+			if (!((inb(0x64) & 0x02))) {
+				return;
+			}
+		}
+		return;
+	}
 }
 
 void MouseWrite(uint8_t value)
 {
-    MouseWait();
-    port_byte_write(0x64, 0xD4);
-    MouseWait();
-    port_byte_write(0x60, value);
+    MouseWait(1);
+    outb(0x64, 0xD4);
+    MouseWait(1);
+    outb(0x60, value);
 }
 
 uint8_t MouseRead()
 {
-    MouseWaitInput();
-    return port_byte_read(0x60);
+    MouseWait(0);
+    return inb(0x60);
 }
 
 uint8_t MouseCycle = 0;
@@ -53,7 +49,7 @@ bool MousePacketReady = false;
 
 void ProcessMousePacket();
 
-void HandlePS2Mouse(uint8_t data)
+void PS2MouseData(unsigned char data)
 {
     switch (MouseCycle)
     {
@@ -79,10 +75,7 @@ void HandlePS2Mouse(uint8_t data)
         MouseCycle = 0;
         break;
     }
-}
 
-void ProcessMousePacket()
-{
     if (MousePacket[0] & PS2Leftbutton)
     {
         Mouse.OnMouseDown_Left = true;
@@ -115,7 +108,7 @@ void ProcessMousePacket()
 
     Mouse.x_old = Mouse.x;
     Mouse.y_old = Mouse.y;
-    Mouse.Sensitivity = 255;
+    Mouse.Sensitivity = 510;
 
     bool xNegative, yNegative, xOverflow, yOverflow;
 
@@ -195,51 +188,46 @@ void ProcessMousePacket()
     {
         Mouse.OnMouseMove = false;
     }*/
-    if (Mouse.x < -1)
-        Mouse.x = -1;
-    if (Mouse.y < -1)
-        Mouse.y = -1;
-    if (Mouse.x >= (long)vga_getresolution(1))
-        Mouse.x = (long)vga_getresolution(1) - 1;
-    if (Mouse.y >= (long)vga_getresolution(2))
-        Mouse.y = (long)vga_getresolution(2) - 1;
+    MouseCheckPos();
     MousePacketReady = false;
     Mouse.OnMouseMove = false;
 }
 
+__attribute__((interrupt)) void HandlePS2Mouse(int_frame_t *r)
+{
+    unsigned char mousedata = inb(0x60);
+    PS2MouseData(mousedata);
+    mouse_keyboard = "mouse";
+    PIC_End();
+}
+
+void MouseCheckPos()
+{
+    if (Mouse.x < -1)
+        Mouse.x = -1;
+    if (Mouse.x >= (long)vga_getresolution(1))
+        Mouse.x = (long)vga_getresolution(1) - 1;
+    if (Mouse.y < -1)
+        Mouse.y = -1;
+    if (Mouse.y >= (long)vga_getresolution(2))
+        Mouse.y = (long)vga_getresolution(2) - 1;
+}
+
 void InitPS2Mouse()
 {
-    port_byte_write(0x64, 0xA8);
-    MouseWait();
-    port_byte_write(0x64, 0x20);
-    MouseWaitInput();
-    uint8_t status = port_byte_read(0x60);
-    status |= 0b10;
-    MouseWait();
-    port_byte_write(0x64, 0x60);
-    MouseWait();
-    port_byte_write(0x60, status);
-    MouseWrite(0xF6);
-    MouseRead();
-    MouseWrite(0xF4);
-    MouseRead();
-    /*MouseWait();
-    outportb( 0x60, 0xF4 );
-    CheckPort();
-    CheckMouse();*/
-}
-
-long int GetMouseInfo(int offset_pos)
-{
-    if (offset_pos == 0)
-        return Mouse.x;
-    else if (offset_pos == 1)
-        return Mouse.y;
-    else
-        return 0;
-}
-
-void MouseSetup()
-{
-    InitPS2Mouse();
+    unsigned char status;
+    MouseWait(1);
+	outb(0x64, 0xA8);
+	MouseWait(1);
+	outb(0x64, 0x20);
+	MouseWait(0);
+	status = inb(0x60) | 2;
+	MouseWait(1);
+	outb(0x64, 0x60);
+	MouseWait(1);
+	outb(0x60, status);
+	MouseWrite(0xF6);
+	MouseRead();
+	MouseWrite(0xF4);
+	MouseRead();
 }

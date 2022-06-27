@@ -1,9 +1,6 @@
-#ifndef _STDLIB_H
-#define _STDLIB_H
- 
-int rand(int,int);
- 
- 
-int atoi(char *string);
-void itoa(int n, char s[]);
-#endif  
+#pragma once
+#include "../kernel.h"
+
+long rand(void);
+long atoi(char *string);
+void itoa(long n, char *s);

@@ -1,17 +1,22 @@
-#include "../kernel.h"
-#include "../include/string.h"
 #include "../include/stdlib.h"
 
-// random number generator
-int rand(int start, int end)
+static long next = 1;
+
+long rand(void)
 {
-    return _krand(start, end);
+    next = next * 1103515245 + 12345;
+    return (long)(next / 65536) % 32768;
 }
 
-int atoi(char *string)
+long srand(long seed)
+{
+    next = seed;
+}
+
+long atoi(char *string)
 {
     char a = 0;
-    int res = 0;
+    long res = 0;
     while ((a = *string++) != '\0')
     {
         res = res * 10 + a - '0';
@@ -19,23 +24,30 @@ int atoi(char *string)
     return res;
 }
 
-void itoa(int n, char s[])
+void itoa(long n, char *s)
 {
-    int i, sign;
-    if ((sign = n) < 0) /* record sign */
-        n = -n;         /* make n positive */
+    long i, sign;
+    if ((sign = n) < 0)
+        n = -n;
     i = 0;
     do
-    {                          /* generate digits in reverse order */
-        s[i++] = n % 10 + '0'; /* get next digit */
-    } while ((n /= 10) > 0);   /* delete it */
+    {
+        s[i++] = n % 10 + '0';
+    } while ((n /= 10) > 0);
     if (sign < 0)
         s[i++] = '-';
     s[i] = '\0';
-    reverse(s);
+    char c;
+    for (long i = 0, j = strlen(s) - 1; i < j; i++, j--)
+    {
+        c = s[i];
+        s[i] = s[j];
+        s[j] = c;
+    }
 }
 
-void sleep(int milisecond)
+void sleep(long milisecond)
 {
-    _ksleep(milisecond);
+    for (long volatile i = 0; i < (long volatile)milisecond; i++);
+        for (long volatile j = 0; j < (long volatile)64000000; j++);
 }

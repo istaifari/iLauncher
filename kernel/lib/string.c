@@ -1,6 +1,18 @@
 #include "../include/string.h"
 
-// static const size_t overhead = sizeof(size_t);
+uint32_t last_alloc = 0;
+uint32_t heap_end = 0;
+uint32_t heap_begin = 0;
+uint32_t pheap_begin = 0;
+uint32_t pheap_end = 0;
+uint8_t *pheap_desc = 0;
+uint32_t memory_used = 0;
+
+typedef struct alloc_t
+{
+    uint8_t status;
+    uint32_t size;
+} alloc_t;
 
 int strlen(char *str)
 {
@@ -10,38 +22,31 @@ int strlen(char *str)
     return len;
 }
 
-/*
-void memcpy(void *dest, void *src, size_t n)
+void *negative_to_positive(long num)
 {
-    char *csrc = (char *)src;
-    char *cdest = (char *)dest;
-    for (int i = 0; i < n; i++)
-    {
-        cdest[i] = csrc[i];
-    }
+    if (num < 0)
+        return -num;
+    else
+        return num;
 }
 
-void *memset(void *s, int c, unsigned int len)
+void *malloc(size_t size)
 {
-    unsigned char *p = s;
-    while (len--)
-    {
-        *p++ = (unsigned char)c;
-    }
-    return s;
+    if (size <= 0)
+        return 0;
+    void *mem = (void *)(size);
+    return mem;
 }
-*/
 
 void *memcpy(void *dest, void *src, size_t n)
 {
-    uint32_t num_dwords = n / 4;
-    uint32_t num_bytes = n % 4;
-    uint32_t *dest32 = (uint32_t *)dest;
-    uint32_t *src32 = (uint32_t *)src;
-    uint8_t *dest8 = ((uint8_t *)dest) + num_dwords * 4;
-    uint8_t *src8 = ((uint8_t *)src) + num_dwords * 4;
-    uint32_t i;
-
+    uint_fast32_t num_dwords = n / 4;
+    uint_fast32_t num_bytes = n % 4;
+    uint_fast32_t *dest32 = (uint_fast32_t *)dest;
+    uint_fast32_t *src32 = (uint_fast32_t *)src;
+    uint_fast8_t *dest8 = ((uint_fast8_t *)dest) + num_dwords * 4;
+    uint_fast8_t *src8 = ((uint_fast8_t *)src) + num_dwords * 4;
+    uint_fast32_t i;
     for (i = 0; i < num_dwords; i++)
     {
         dest32[i] = src32[i];
@@ -55,13 +60,13 @@ void *memcpy(void *dest, void *src, size_t n)
 
 void *memset(void *dest, int val, size_t n)
 {
-    uint32_t num_dwords = n / 4;
-    uint32_t num_bytes = n % 4;
-    uint32_t *dest32 = (uint32_t *)dest;
-    uint8_t *dest8 = ((uint8_t *)dest) + num_dwords * 4;
-    uint8_t val8 = (uint8_t)val;
-    uint32_t val32 = val | (val << 8) | (val << 16) | (val << 24);
-    uint32_t i;
+    uint_fast32_t num_dwords = n / 4;
+    uint_fast32_t num_bytes = n % 4;
+    uint_fast32_t *dest32 = (uint_fast32_t *)dest;
+    uint_fast8_t *dest8 = ((uint_fast8_t *)dest) + num_dwords * 4;
+    uint_fast8_t val8 = (uint_fast8_t)val;
+    uint_fast32_t val32 = val | (val << 8) | (val << 16) | (val << 24);
+    uint_fast32_t i;
 
     for (i = 0; i < num_dwords; i++)
     {
@@ -134,13 +139,47 @@ int strcmp(char *str1, char *str2)
     return 0;
 }
 
-void strcpy(char *buf_to, char *buf_from)
+uint8_t *strdup(uint8_t *str)
 {
+    uint8_t *new_str;
 
-    char a = 0;
-    while ((a = *buf_from++) != '\0')
+    if (str == NULL)
+        return NULL;
+
+    new_str = (uint8_t *)kmalloc(strlen(str) + 1);
+
+    if (new_str == NULL)
+        return NULL;
+
+    strcpy(new_str, str);
+
+    return new_str;
+}
+
+void strcpy(char *dest, char *src)
+{
+    do
     {
-        *buf_to++ = a;
+        *dest++ = *src++;
+    } while (*src != 0);
+}
+
+void strncpy(char dest[], const char source[], int size)
+{
+    int i = 0, sz = size;
+    while (1)
+    {
+        dest[i] = source[i];
+        if (dest[i] == '\0')
+        {
+            break;
+        }
+        if (i >= size)
+        {
+            dest[i] = '\0';
+            break;
+        }
+        i++;
     }
 }
 

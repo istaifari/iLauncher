@@ -20,19 +20,14 @@
 #define VGA_NUM_GC_REGS 9
 #define VGA_NUM_AC_REGS 21
 #define VGA_NUM_REGS (1 + VGA_NUM_SEQ_REGS + VGA_NUM_CRTC_REGS + VGA_NUM_GC_REGS + VGA_NUM_AC_REGS)
-/*#define MAKE_VGA_MODE(w, h, depth) ((((depth & 0xff) << 24) | ((w & 0xfff) << 12) | (h & 0xfff)))
-#define VGA_MODE_WIDTH(m) (((unsigned)m >> 12) & 0xfff)
-#define VGA_MODE_HEIGHT(m) ((unsigned)m & 0xfff)
-#define VGA_MODE_DEPTH(m) (((unsigned)m >> 24) & 0xff)*/
 
-unsigned vga_width, vga_height, vga_bpp, vga_depth, vga_pitch, vga_bufsize;
+unsigned vga_width, vga_height, vga_bpp, vga_pitch, vga_pixelstride, vga_bufsize;
 
-unsigned char *vga_memory;
-unsigned char *vga_backbuffer;
+char *vga_backbuffer;
+char *vga_memory;
+uint32_t *CursorImg = (uint32_t *)(2);
 
-static void (*vga_putpixel)(long x, long y, unsigned c);
-
-static unsigned get_fb_seg(void)
+static unsigned GetFramebuffer(void)
 {
 	unsigned seg;
 	outb(VGA_GC_INDEX, 0x06);
@@ -40,63 +35,75 @@ static unsigned get_fb_seg(void)
 	switch (seg)
 	{
 	case 1:
-		return 0xa0000;
+		return 0xA0000;
 	case 2:
-		return 0xb0000;
+		return 0xB0000;
 	case 3:
-		return 0xb8000;
+		return 0xB8000;
 	default:
 		return 0x00000;
 	}
 }
 
-static void set_plane(long p)
+void set_plane(uint64_t p)
 {
-	unsigned char pmask;
-	p &= 3;
-	pmask = 1 << p;
 	outb(VGA_GC_INDEX, 4);
 	outb(VGA_GC_DATA, p);
 	outb(VGA_SEQ_INDEX, 2);
-	outb(VGA_SEQ_DATA, pmask);
+	outb(VGA_SEQ_DATA, 1 << p);
 }
 
-static void putpixel8(long x, long y, unsigned c)
+void vga_putpixel_memory(long xy, long c)
+{
+	if (xy < 0 || xy >= vga_bufsize)
+		return;
+	long pos = 0, bitoffs = 0;
+	if (vga_bpp == 4)
+	{
+		pos = xy / 4;
+		vga_memory[pos] = (vga_memory[pos] & ~(0xC0 >> ((xy & 3) * 2))) | (c & (0xC0 >> ((xy & 3) * 2)));
+	}
+	if (vga_bpp == 8)
+	{
+		pos = xy;
+		vga_memory[pos] = c;
+	}
+	if (vga_bpp == 16)
+	{
+		pos = xy / 8;
+		for (long p = 0; p < 4; p++)
+		{
+			set_plane(p);
+			if ((1 << p) & c)
+				vga_memory[pos] |= (0x80 >> ((xy & 7) * 1));
+			else
+				vga_memory[pos] &=~(0x80 >> ((xy & 7) * 1));
+		}
+	}
+}
+
+void vga_putpixel(long x, long y, long c)
 {
 	if (x < 0 || x >= vga_width || y < 0 || y >= vga_height)
 		return;
-	long pos, mask, pmask;
-	if (vga_bpp == 8)
-	{
-		pos = y * vga_width + x;
-		vga_backbuffer[pos] = c;
-	}
-	else if (vga_bpp == 16)
-	{
-		pos = y * (vga_width / 8) + x / 8;
-		x = (x & 7) * 1;
-		mask = 0x80 >> x;
-		pmask = 1;
-		vga_backbuffer[pos] = (c & mask) | vga_backbuffer[pos];
-	}
+	else
+		vga_backbuffer[y * vga_width + x] = c;
 }
 
-void vga_drawimage(long x, long y, long w, long h, const unsigned *pixels)
+void vga_drawimage(const uint32_t *pixels, long x, long y, long w, long h)
 {
 	long i = 0, l = 0, j = 0;
 	for (l = j = 0; l < h; l++)
 	{
 		for (i = 0; i < w; i++, j++)
 		{
-			if (pixels[j] != 0x40)
-			{
-				vga_putpixel(x + i, y + l, pixels[j]);
-			}
+			//if (pixels[j] & 0xFF000000)
+				vga_putpixel(x + i, y + l, pixels[j + 2]);
 		}
 	}
 }
 
-void vga_fillRect(long x, long y, long w, long h, unsigned c)
+void vga_fillRect(long x, long y, long w, long h, long c)
 {
 	long i = 0, l = 0;
 	for (l = 0; l < h; l++)
@@ -108,7 +115,7 @@ void vga_fillRect(long x, long y, long w, long h, unsigned c)
 	}
 }
 
-void vga_drawchar(char chr, long x, long y, unsigned c, unsigned char font[], long font_w, long font_h, bool flip)
+void vga_drawchar(char chr, long x, long y, long c, unsigned char *font, long font_w, long font_h, bool flip)
 {
 	int cx, cy;
 	int mask[8];
@@ -146,7 +153,7 @@ void vga_drawchar(char chr, long x, long y, unsigned c, unsigned char font[], lo
 	}
 }
 
-void vga_drawtext(char *text, unsigned color, long x, long y, unsigned char font[], long font_w, long font_h)
+void vga_drawtext(char *text, long x, long y, long c, unsigned char *font, long font_w, long font_h)
 {
 	long i, x_pos, y_pos, col, row, stop;
 	char chr;
@@ -185,20 +192,17 @@ void vga_drawtext(char *text, unsigned color, long x, long y, unsigned char font
 			chr = text[i];
 			break;
 		}
-
 		if (stop)
 		{
 			break;
 		}
-
 		if (((col - 1) * font_width) >= vga_width)
 		{
 			row++;
 			col = 0;
 			chr = 0;
 		}
-
-		vga_drawchar(chr, ((col - 1) * font_width) + x, (row * font_height) + y, color, font, font_w, font_h, false);
+		vga_drawchar(chr, ((col - 1) * font_width) + x, (row * font_height) + y, c, font, font_w, font_h, false);
 	}
 }
 
@@ -218,25 +222,25 @@ unsigned vga_getresolution(int select)
 	}
 }
 
-void vga_swapbuffers()
-{
-	memcpy(vga_memory, vga_backbuffer, vga_bufsize);
-}
-
 void vga_setupFramebuffer(unsigned ScreenWidth, unsigned ScreenHeight, unsigned BitsPerPixel)
 {
+	vga_pixelstride = (BitsPerPixel | 7) >> 3;
+	vga_pitch = ScreenWidth * vga_pixelstride;
 	vga_width = ScreenWidth;
 	vga_height = ScreenHeight;
 	vga_bpp = BitsPerPixel;
-	vga_depth = (vga_bpp | 7) >> 3;
-	vga_pitch = vga_width * vga_depth;
-	vga_bufsize = vga_pitch * vga_height;
-	vga_memory = (unsigned char *)get_fb_seg();
-	vga_backbuffer = (unsigned char *)vga_bufsize;
-	return;
+	vga_bufsize = vga_width * vga_height;
+	vga_backbuffer = (char *)(kmalloc(vga_bufsize));
+	vga_memory = (char *)(GetFramebuffer());
+	Mouse.width = CursorImg[0];
+	Mouse.height = CursorImg[1];
+	Mouse.x = (vga_getresolution(1) - Mouse.width) / 2;
+	Mouse.y = (vga_getresolution(2) - Mouse.height) / 2;
+	Mouse.x_old = Mouse.x;
+	Mouse.y_old = Mouse.y;
 }
 
-void vga_WriteResolutionRegister(unsigned char *regs, unsigned w, unsigned h, unsigned c)
+void vga_WriteResolutionRegister(unsigned char *regs, unsigned w, unsigned h, long c)
 {
 	unsigned i;
 	outb(VGA_MISC_WRITE, *regs);
@@ -275,10 +279,9 @@ void vga_WriteResolutionRegister(unsigned char *regs, unsigned w, unsigned h, un
 	(void)inb(VGA_INSTAT_READ);
 	outb(VGA_AC_INDEX, 0x20);
 	vga_setupFramebuffer(w, h, c);
-	vga_clear(0x00);
 }
 
-void vga_clear(unsigned c)
+void vga_clear(long c)
 {
 	memset(vga_backbuffer, c, vga_bufsize);
 	/*unsigned x, y;
@@ -293,79 +296,86 @@ void vga_clear(unsigned c)
 	}*/
 }
 
+void vga_swapbuffers()
+{
+	for (size_t i = 0; i < vga_bufsize; i++)
+		vga_putpixel_memory(i, vga_backbuffer[i]);
+}
+
 void vga_start()
 {
 	char *resolution = "320x200x8";
 	if (resolution == "320x200x8")
 	{
-		vga_putpixel = putpixel8;
 		vga_WriteResolutionRegister(g_320x200x8, 320, 200, 8);
 	}
-	/*else if (resolution == "320x200x4")
+	else if (resolution == "320x200x4")
 	{
-		vga_WriteResolutionRegister(g_320x200x4);
-		vga_width = 320;
-		vga_height = 200;
-		vga_putpixel = putpixel2;
-		vga_clear();
-	}*/
+		vga_WriteResolutionRegister(g_320x200x4, 320, 200, 4);
+	}
 	else if (resolution == "640x480x16")
 	{
-		vga_putpixel = putpixel8;
 		vga_WriteResolutionRegister(g_640x480x16, 640, 480, 16);
 	}
-	/*else if (resolution == "720x480x16")
+	else if (resolution == "720x480x16")
 	{
-		vga_putpixel = putpixel4p;
 		vga_WriteResolutionRegister(g_720x480x16, 720, 480, 16);
-	}*/
-	vga_update();
-	gfx_mode = true;
-	/*int icount = 0;
-	int count_x = 0;
-	int count_y = 0;
-	for (int i = 0; i < 4000; i++)
-	{
-		vga_draw(' ', 0x00, i, 0);
-		vga_draw(' ', 0x00, count_x, count_y++);
-		icount++;
-		if (icount > 25 - 1 && count_y > 25 - 1)
-		{
-			icount = 0;
-			count_y = 0;
-			count_x++;
-			if (count_x > 80 - 1)
-			{
-				count_x = 0;
-			}
-		}
-	}*/
-	extern bool line_inf;
-	line_inf = false;
+	}
 }
 
 void vga_update()
 {
-	Mouse.width = 24;
-	Mouse.height = 32;
+	CursorImg = tga_load("cursor.tga");
+	Mouse.width = MousePointer_24x32[0];
+	Mouse.height = MousePointer_24x32[1];
 	Mouse.x = (vga_getresolution(1) - Mouse.width) / 2;
 	Mouse.y = (vga_getresolution(2) - Mouse.height) / 2;
 	Mouse.x_old = Mouse.x;
 	Mouse.y_old = Mouse.y;
 	Window window;
+	char *strfile = tarfs_get_file(initfs, "file.txt");
+	/*long i = 0;
+	long a = 0;*/
 	while (1)
 	{
 		vga_clear(0x01);
 		gui_window_update(&window);
 		gui_window_paint(&window);
 		gui_window_draw(&window);
-		vga_drawimage(Mouse.x, Mouse.y, Mouse.width, Mouse.height, MousePointer_24x32);
+		vga_drawimage(MousePointer_24x32, Mouse.x, Mouse.y, Mouse.width, Mouse.height);
+		vga_drawchar(GetKey(), 0, 0, 0x3f, font_8x8, 8, 8, false);
+		vga_drawtext(mouse_keyboard, 0, 8, 0x3f, font_8x8, 8, 8);
+		vga_drawtext(timer->time->string[2], 0, 8 * 2, 0x3f, font_8x8, 8, 8);
+		vga_drawtext(timer->time->string[1], 0, 8 * 3, 0x3f, font_8x8, 8, 8);
+		vga_drawtext(timer->time->string[0], 0, 8 * 4, 0x3f, font_8x8, 8, 8);
+		vga_drawtext(strfile, 0, 8 * 5, 0x3f, font_8x8, 8, 8);
+		/*if (i >= 250)
+		{
+			audio_start_beep(1000/2);
+		}
+		else
+		{
+			i++;
+		}
+		if (a >= 450)
+		{
+			audio_stop_beep();
+			i = 0;
+			a = 0;
+		}
+		else
+		{
+			a++;
+		}*/
 		vga_swapbuffers();
-
-		/* Mouse Interrupt */
-		ProcessMousePacket();
-		MouseInterrupt();
+		/*sleep(1000);
+		  sleep(1000);
+		  sleep(1000);
+		  sleep(1000);
+		  sleep(1000);
+		  sleep(1000);
+		  sleep(1000);
+		  sleep(1000);
+		  _reboot();  */
 	}
-	while (1)
-		;
 }
