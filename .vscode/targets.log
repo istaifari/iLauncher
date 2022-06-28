@@ -8,16 +8,17 @@ make: *** No rule to make target 'all'.  Stop.
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Mon Jun 27 17:33:41 2022
+# Make data base, printed on Mon Jun 27 21:26:06 2022
 
 # Variables
 
 # environment
 GDK_BACKEND = x11
+ 
 # environment
 LC_ALL = C
 # environment
-VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-f572e46a-88f8-4521-9c6c-8ad4ffce33c4.sock
+VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-4a58574d-9c06-4c11-abf4-cf29c4116820.sock
 # environment
 MANDATORY_PATH = /usr/share/gconf/xubuntu.mandatory.path
 # environment
@@ -49,6 +50,7 @@ PWD = /media/istaifari/ESD-USB/projetos/iLauncher
 # automatic
 %D = $(patsubst %/,%,$(dir $%))
 # environment
+ 
 XDG_DATA_DIRS = /usr/share/xfce4:/usr/share/xubuntu:/usr/share/gnome:/home/istaifari/.local/share/flatpak/exports/share:/var/lib/flatpak/exports/share:/usr/local/share:/usr/share:/var/lib/snapd/desktop:/usr/share
 # automatic
 ^D = $(patsubst %/,%,$(dir $^))
@@ -99,7 +101,7 @@ MAKEFILE_LIST :=
 # environment
 VSCODE_VERBOSE_LOGGING = true
 # environment
-VSCODE_PID = 4433
+VSCODE_PID = 7190
 # environment
 XDG_SESSION_TYPE = x11
 # automatic
@@ -107,7 +109,7 @@ XDG_SESSION_TYPE = x11
 # environment
 CLUTTER_BACKEND = x11
 # environment
-SESSION_MANAGER = local/istaifari:@/tmp/.ICE-unix/3744,unix/istaifari:/tmp/.ICE-unix/3744
+SESSION_MANAGER = local/istaifari:@/tmp/.ICE-unix/3693,unix/istaifari:/tmp/.ICE-unix/3693
 # automatic
 *F = $(notdir $*)
 # environment
@@ -195,7 +197,7 @@ MAKE_VERSION := 4.3
 # environment
 LC_MEASUREMENT = pt_BR.UTF-8
 # environment
-GIO_LAUNCHED_DESKTOP_FILE_PID = 4433
+GIO_LAUNCHED_DESKTOP_FILE_PID = 7190
 # environment
 _ = /usr/share/code/code
 # environment
@@ -245,9 +247,9 @@ LC_IDENTIFICATION = pt_BR.UTF-8
 
 # Directories
 
-# . (device 2065, inode 4804): 14 files, no impossibilities.
+# . (device 2065, inode 4804): 12 files, no impossibilities.
 
-# 14 files, no impossibilities in 1 directories.
+# 12 files, no impossibilities in 1 directories.
 
 # Implicit Rules
 
@@ -294,16 +296,15 @@ GNUmakefile:
 # VPATH Search Paths
 
 # No 'vpath' search paths.
- 
 
 # No general ('VPATH' variable) search path.
 
-# strcache buffers: 1 (0) / strings = 22 / storage = 234 B / avg = 10 B
-# current buf: size = 8162 B / used = 234 B / count = 22 / avg = 10 B
+# strcache buffers: 1 (0) / strings = 20 / storage = 212 B / avg = 10 B
+# current buf: size = 8162 B / used = 212 B / count = 20 / avg = 10 B
 
-# strcache performance: lookups = 25 / hit rate = 12%
+# strcache performance: lookups = 23 / hit rate = 13%
 # hash-table stats:
-# Load=22/8192=0%, Rehash=0, Collisions=0/25=0%
-# Finished Make data base on Mon Jun 27 17:33:41 2022
+# Load=20/8192=0%, Rehash=0, Collisions=0/23=0%
+# Finished Make data base on Mon Jun 27 21:26:06 2022
 
  

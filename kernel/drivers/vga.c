@@ -61,7 +61,8 @@ void vga_putpixel_memory(long xy, long c)
 	if (vga_bpp == 4)
 	{
 		pos = xy / 4;
-		vga_memory[pos] = (vga_memory[pos] & ~(0xC0 >> ((xy & 3) * 2))) | (c & (0xC0 >> ((xy & 3) * 2)));
+		vga_memory[pos] = (vga_memory[pos] & ~(0xC0 >> ((xy & 3) * 2)))
+						| (((c & 3) * 0x55) & (0xC0 >> ((xy & 3) * 2)));
 	}
 	if (vga_bpp == 8)
 	{

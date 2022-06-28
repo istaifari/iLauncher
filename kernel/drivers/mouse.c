@@ -108,7 +108,8 @@ void PS2MouseData(unsigned char data)
 
     Mouse.x_old = Mouse.x;
     Mouse.y_old = Mouse.y;
-    Mouse.Sensitivity = 510;
+    if (!Mouse.Sensitivity)
+        Mouse.Sensitivity = 2;
 
     bool xNegative, yNegative, xOverflow, yOverflow;
 
@@ -150,33 +151,33 @@ void PS2MouseData(unsigned char data)
 
     if (!xNegative)
     {
-        Mouse.x += MousePacket[1];
+        Mouse.x += MousePacket[1] * Mouse.Sensitivity;
         if (xOverflow)
-            Mouse.x += Mouse.Sensitivity;
+            Mouse.x += 255;
         Mouse.OnMouseMove = true;
     }
     else
     {
-        MousePacket[1] = (Mouse.Sensitivity + 1) - MousePacket[1];
-        Mouse.x -= MousePacket[1];
+        MousePacket[1] = (255 + 1) - MousePacket[1];
+        Mouse.x -= MousePacket[1] * Mouse.Sensitivity;
         if (xOverflow)
-            Mouse.x -= Mouse.Sensitivity;
+            Mouse.x -= 255;
         Mouse.OnMouseMove = true;
     }
 
     if (!yNegative)
     {
-        Mouse.y -= MousePacket[2];
+        Mouse.y -= MousePacket[2] * Mouse.Sensitivity;
         if (yOverflow)
-            Mouse.y -= Mouse.Sensitivity;
+            Mouse.y -= 255;
         Mouse.OnMouseMove = true;
     }
     else
     {
-        MousePacket[2] = (Mouse.Sensitivity + 1) - MousePacket[2];
-        Mouse.y += MousePacket[2];
+        MousePacket[2] = (255 + 1) - MousePacket[2];
+        Mouse.y += MousePacket[2] * Mouse.Sensitivity;
         if (yOverflow)
-            Mouse.y += Mouse.Sensitivity;
+            Mouse.y += 255;
         Mouse.OnMouseMove = true;
     }
 

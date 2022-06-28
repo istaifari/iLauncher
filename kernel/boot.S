@@ -13,10 +13,6 @@ global _load_gdt
 global _load_tss
 global _load_idt
 global _reboot
-extern irq_handler, isr_handler
-extern PIC_End
-extern HandlePS2Keyboard, HandlePS2Mouse
-global irq_common_stub, isr_common_stub
 
 _start:
 	cli
@@ -59,34 +55,6 @@ _reboot:
 .halt:
     hlt
     jmp .halt
-
-section .data
-gdt_start:
-    gdt_null:
-        dd 0x00
-        dd 0x00
-    gdt_code:
-        dw 0xffff
-        dw 0x0000
-        db 0x00
-        db 0x9a
-        db 0xcf
-        db 0x00
-    gdt_data:
-        dw 0xffff
-        dw 0x0000
-        db 0x00
-        db 0x92
-        db 0xcf
-        db 0x00
-gdt_end:
-gdt_descriptor:
-    dw gdt_end - gdt_start - 1
-    dd gdt_start
-    
-gdt_codeseg equ gdt_code - gdt_start
-gdt_dataseg equ gdt_data - gdt_start
-
 
 section .bss
     resb 8192
