@@ -8,17 +8,16 @@ make: *** No rule to make target 'all'.  Stop.
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Mon Jun 27 21:26:06 2022
+# Make data base, printed on Thu Jun 30 18:46:19 2022
 
 # Variables
 
 # environment
 GDK_BACKEND = x11
- 
 # environment
 LC_ALL = C
 # environment
-VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-4a58574d-9c06-4c11-abf4-cf29c4116820.sock
+VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-b60f118c-2e7d-4b92-95f8-0855e75b778b.sock
 # environment
 MANDATORY_PATH = /usr/share/gconf/xubuntu.mandatory.path
 # environment
@@ -50,7 +49,6 @@ PWD = /media/istaifari/ESD-USB/projetos/iLauncher
 # automatic
 %D = $(patsubst %/,%,$(dir $%))
 # environment
- 
 XDG_DATA_DIRS = /usr/share/xfce4:/usr/share/xubuntu:/usr/share/gnome:/home/istaifari/.local/share/flatpak/exports/share:/var/lib/flatpak/exports/share:/usr/local/share:/usr/share:/var/lib/snapd/desktop:/usr/share
 # automatic
 ^D = $(patsubst %/,%,$(dir $^))
@@ -101,7 +99,7 @@ MAKEFILE_LIST :=
 # environment
 VSCODE_VERBOSE_LOGGING = true
 # environment
-VSCODE_PID = 7190
+VSCODE_PID = 4459
 # environment
 XDG_SESSION_TYPE = x11
 # automatic
@@ -109,7 +107,7 @@ XDG_SESSION_TYPE = x11
 # environment
 CLUTTER_BACKEND = x11
 # environment
-SESSION_MANAGER = local/istaifari:@/tmp/.ICE-unix/3693,unix/istaifari:/tmp/.ICE-unix/3693
+SESSION_MANAGER = local/istaifari:@/tmp/.ICE-unix/3742,unix/istaifari:/tmp/.ICE-unix/3742
 # automatic
 *F = $(notdir $*)
 # environment
@@ -197,7 +195,7 @@ MAKE_VERSION := 4.3
 # environment
 LC_MEASUREMENT = pt_BR.UTF-8
 # environment
-GIO_LAUNCHED_DESKTOP_FILE_PID = 7190
+GIO_LAUNCHED_DESKTOP_FILE_PID = 4459
 # environment
 _ = /usr/share/code/code
 # environment
@@ -281,6 +279,7 @@ all:
 makefile:
 #  Implicit rule search has been done.
 #  File does not exist.
+ 
 #  File has been updated.
 #  Failed to be updated.
 
@@ -305,6 +304,6 @@ GNUmakefile:
 # strcache performance: lookups = 23 / hit rate = 13%
 # hash-table stats:
 # Load=20/8192=0%, Rehash=0, Collisions=0/23=0%
-# Finished Make data base on Mon Jun 27 21:26:06 2022
+# Finished Make data base on Thu Jun 30 18:46:19 2022
 
  

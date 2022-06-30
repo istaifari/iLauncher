@@ -20,7 +20,7 @@ void gui_window_update(Window *obj)
     {
         obj->isSetup = true;
         obj->width = 128;
-        obj->height = 96;
+        obj->height = 128;
         obj->x = (vga_getresolution(1) - obj->width) / 2;
         obj->y = (vga_getresolution(2) - obj->height) / 2;
         obj->top = 22;
@@ -96,14 +96,41 @@ void gui_window_paint(Window *obj)
     }
 }
 
-unsigned color = 0x3f;
-
-void gui_window_draw(Window *obj)
+void gui_window_scancode(Window *obj, int8_t *keys, key_handle_t kfn, char keycode)
 {
     if (!obj->visible)
         return;
-    long offsetX = obj->x + obj->left_right;
-    long offsetY = obj->y + obj->top;
-    color = rand() % 0x3f + 0x02;
-    vga_drawtext("Hello World!", offsetX + 2, offsetY + 2, color, font_8x8, 8, 8);
+    WindowInfo info = {
+        .key = 0,
+        .x = obj->x,
+        .y = obj->y,
+        .width = obj->width,
+        .height = obj->height,
+        .OnMouseDown_Left = obj->OnMouseDown_Left,
+        .OnMouseDown_Middle = obj->OnMouseDown_Middle,
+        .OnMouseDown_Right = obj->OnMouseDown_Right,
+    };
+    for (long i = 0; i < strlen(keys); i++)
+    {
+        info.key = keys[i];
+        if (keycode == keys[i])
+            kfn(info);
+    }
+}
+
+void gui_window_draw(Window *obj, long x, long y, long c)
+{
+    if (!obj->visible)
+        return;
+    long offsetX = obj->x + obj->left_right + x;
+    long offsetY = obj->y + obj->top + y;
+    if (offsetX < (obj->x + obj->left_right))
+        return;
+    if (offsetY < (obj->y + obj->top))
+        return;
+    if (offsetX > obj->width + (obj->x + obj->left_right) - 1)
+        return;
+    if (offsetY > obj->height + (obj->y + obj->top) - 1)
+        return;
+    vga_putpixel(offsetX, offsetY, c);
 }

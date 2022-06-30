@@ -17,6 +17,7 @@ typedef struct idtr_t
 } __attribute__((packed)) idtr_t;
 
 typedef struct int_frame int_frame_t;
+extern __attribute__((interrupt)) void HandleTimer(int_frame_t *r);
 extern __attribute__((interrupt)) void HandlePS2Keyboard(int_frame_t *r);
 extern __attribute__((interrupt)) void HandlePS2Mouse(int_frame_t *r);
 

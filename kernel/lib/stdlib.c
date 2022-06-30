@@ -13,41 +13,58 @@ long srand(long seed)
     next = seed;
 }
 
-long atoi(char *string)
+long atoi(const char *str)
 {
-    char a = 0;
     long res = 0;
-    while ((a = *string++) != '\0')
-    {
-        res = res * 10 + a - '0';
+    long sign = 1;
+    long i = 0;
+    if (str[0] == '-') {
+        sign = -1;
+        i++;
     }
-    return res;
+    for (; str[i] != '\0'; i++)
+        res = res * 10 + str[i] - '0';
+    return sign * res;
 }
 
-void itoa(long n, char *s)
+void *itoa(long res, char *a)
 {
-    long i, sign;
-    if ((sign = n) < 0)
-        n = -n;
-    i = 0;
-    do
+    long size = 1;
+    long sign = 1;
+    if (res < 0)
+        sign = -1;
+    if (sign == -1)
     {
-        s[i++] = n % 10 + '0';
-    } while ((n /= 10) > 0);
-    if (sign < 0)
-        s[i++] = '-';
-    s[i] = '\0';
-    char c;
-    for (long i = 0, j = strlen(s) - 1; i < j; i++, j--)
-    {
-        c = s[i];
-        s[i] = s[j];
-        s[j] = c;
+        res = -res;
+        a[size] = '-';
     }
+    long t = res;
+    while (t / 10 != 0)
+    {
+        t = t / 10;
+        size++;
+    }
+    a[size] = '\0';
+    t = res;
+    long i = size - 1;
+    while (i >= 0)
+    {
+        if (sign == -1)
+            a[i+1] = (t % 10) + '0';
+        else
+            a[i] = (t % 10) + '0';
+        t = t / 10;
+        i--;
+    }
+    return a;
 }
 
 void sleep(long milisecond)
 {
-    for (long volatile i = 0; i < (long volatile)milisecond; i++);
-        for (long volatile j = 0; j < (long volatile)64000000; j++);
+    /*for (long volatile i = 0; i < (long volatile)milisecond; i++)
+        for (long volatile j = 0; j < (long volatile)64000000; j++)
+            ;*/
+    long tmp = timer->timefull + milisecond;
+    while (timer->timefull >= tmp)
+        ;
 }

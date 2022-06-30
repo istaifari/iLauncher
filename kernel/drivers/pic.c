@@ -1,6 +1,5 @@
 #include "../include/pic.h"
 
-
 void PIC_End()
 {
     outb(0x20, 0x20);

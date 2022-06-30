@@ -5,6 +5,7 @@
 
 static unsigned char g_640x480x2[] =
 	{
+		2,
 		/* MISC */
 		0xE3,
 		/* SEQ */
@@ -29,6 +30,7 @@ is different from BIOS mode 05h in two ways:
 *****************************************************************************/
 static unsigned char g_320x200x4[] =
 	{
+		4,
 		/* MISC */
 		0x63,
 		/* SEQ */
@@ -48,6 +50,7 @@ static unsigned char g_320x200x4[] =
 
 static unsigned char g_640x480x16[] =
 	{
+		16,
 		/* MISC */
 		0xE3,
 		/* SEQ */
@@ -67,6 +70,7 @@ static unsigned char g_640x480x16[] =
 
 static unsigned char g_720x480x16[] =
 	{
+		16,
 		/* MISC */
 		0xE7,
 		/* SEQ */
@@ -87,6 +91,7 @@ static unsigned char g_720x480x16[] =
 
 static unsigned char g_320x200x8[] =
 	{
+		8,
 		/* MISC */
 		0x63,
 		/* SEQ */

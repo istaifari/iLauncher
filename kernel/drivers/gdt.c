@@ -3,6 +3,10 @@
 gdt_entry_t gdt[5];
 gdtr_t gdtr;
 extern void _load_gdt(uint32_t);
+void load_gdt(gdtr_t r)
+{
+    _load_gdt((uint32_t)&r);
+}
 
 void gdt_set_gate(int32_t num, uint32_t base, uint32_t limit, uint8_t access, uint8_t gran)
 {
@@ -25,5 +29,5 @@ void gdt_install()
     gdt_set_gate(2, 0, 0xFFFFFFFF, 0x92, 0xCF);
     gdt_set_gate(3, 0, 0xFFFFFFFF, 0xFA, 0xCF);
     gdt_set_gate(4, 0, 0xFFFFFFFF, 0xF2, 0xCF);
-    _load_gdt((uint32_t)&gdtr);
+    load_gdt(gdtr);
 }

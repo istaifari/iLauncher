@@ -40,20 +40,22 @@ void *malloc(size_t size)
 
 void *memcpy(void *dest, void *src, size_t n)
 {
-    uint_fast32_t num_dwords = n / 4;
-    uint_fast32_t num_bytes = n % 4;
-    uint_fast32_t *dest32 = (uint_fast32_t *)dest;
-    uint_fast32_t *src32 = (uint_fast32_t *)src;
-    uint_fast8_t *dest8 = ((uint_fast8_t *)dest) + num_dwords * 4;
-    uint_fast8_t *src8 = ((uint_fast8_t *)src) + num_dwords * 4;
-    uint_fast32_t i;
+    uint32_t num_dwords = n / 4;
+    uint32_t num_bytes = n % 4;
+    uint32_t *dest32 = (uint32_t *)dest;
+    uint32_t *src32 = (uint32_t *)src;
+    uint8_t *dest8 = ((uint8_t *)dest) + num_dwords * 4;
+    uint8_t *src8 = ((uint8_t *)src) + num_dwords * 4;
+    uint32_t i;
     for (i = 0; i < num_dwords; i++)
     {
-        dest32[i] = src32[i];
+        if (dest32[i] != src32[i])
+            dest32[i] = src32[i];
     }
     for (i = 0; i < num_bytes; i++)
     {
-        dest8[i] = src8[i];
+        if (dest8[i] != src8[i])
+            dest8[i] = src8[i];
     }
     return dest;
 }

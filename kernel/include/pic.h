@@ -2,5 +2,4 @@
 #include "../kernel.h"
 
 void RemapPIC();
-void PIC_EndMaster();
-void PIC_EndSlave();
+void PIC_End();

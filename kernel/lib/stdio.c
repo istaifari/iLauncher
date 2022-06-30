@@ -12,16 +12,14 @@ void *scan(char *buf, long n)
 	while (stat)
 	{
 		key = GetKey();
-		if (default_keyboard->isEnterPressed)
-		{
-			default_keyboard->isEnterPressed = false;
-			printtext("\n", 0x0f, 0);
-			stat = 0;
-		}
 		if (key == 0)
 			continue;
 		switch (key)
 		{
+		case '\n':
+			printtext("\n", 0x0f, 0);
+			stat = 0;
+			break;
 		case '\b':
 			if (i > 0)
 			{

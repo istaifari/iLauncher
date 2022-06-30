@@ -226,6 +226,63 @@ keyboard_t ptbr_abnt2 = {
 
 keyboard_t *default_keyboard = (keyboard_t *)&en_international;
 
+keyboard_keybuffer_t *keyboard_keybuffer_setup(size_t size)
+{
+  keyboard_keybuffer_t *tmp = kmalloc(sizeof(keyboard_keybuffer_t) * (size+1));
+  tmp->buffer = (char *)(kmalloc(size + 1));
+  tmp->size = size + 1;
+  memset(tmp->buffer, '\0', tmp->size);
+  return tmp;
+}
+
+void *keyboard_keybuffer_free(keyboard_keybuffer_t *keybuffer)
+{
+  kfree(keybuffer);
+}
+
+void *keyboard_keybuffer_read(keyboard_keybuffer_t *keybuffer)
+{
+  if (!keybuffer)
+    return "errn: keybuffer is empty/invalid";
+  return keybuffer->buffer;
+}
+
+void *keyboard_keybuffer_scan(keyboard_keybuffer_t *keybuffer)
+{
+  if (!keybuffer)
+    return false;
+  char keycode = GetKey();
+  long offset = strlen(keybuffer->buffer);
+  switch (keycode)
+  {
+  case 0:
+    return false;
+  case '\n':
+    return true;
+  case '\t':
+    for (long i = 0; i < 4; i++)
+    {
+      if (offset + (i + 1) < keybuffer->size - 1)
+      {
+        keybuffer->buffer[offset] = ' ';
+      }
+    }
+    return false;
+  case '\b':
+    if (offset > 0)
+    {
+      keybuffer->buffer[offset - 1] = '\0';
+    }
+    return false;
+  default:
+    if (offset < keybuffer->size - 1)
+    {
+      keybuffer->buffer[offset] = keycode;
+    }
+    return false;
+  }
+}
+
 char SetKey(char key_c, bool uppercase)
 {
   if (key_c >= default_keyboard->keymap_size || key_c < 0)
@@ -276,12 +333,12 @@ void ScanKey(unsigned char scancode)
 {
   switch (scancode)
   {
-  case 0x1C:
+  /*case 0x1C:
     default_keyboard->isEnterPressed = true;
     return;
   case 0x1C + 0x80:
     default_keyboard->isEnterPressed = false;
-    return;
+    return;*/
   case 0x2A:
     default_keyboard->isLeftShiftPressed = true;
     return;

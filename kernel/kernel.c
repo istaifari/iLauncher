@@ -92,21 +92,20 @@ void _kernel_ramdisk_error()
         printchar('%', 0x1f, 0);
         sleep(1000);
     }
-    sleep(1000);
     _reboot();
-    return;
 }
 
-void _kernel(void *mboot)
+void _kernel(void *mboot, uint32_t initial_stack)
 {
-    gdt_install();
     tss_install();
+    gdt_install();
     idt_install();
     mboot_ptr = (multiboot_info_t *)(mboot);
     if (mboot_ptr->mods_count > 0)
         initfs = tarfs_install();
     else
         _kernel_ramdisk_error();
+    initialize_paging();
     os_version = tarfs_get_file(initfs, "version.txt");
     for (long volatile in = 0; in < 2; in++)
     {

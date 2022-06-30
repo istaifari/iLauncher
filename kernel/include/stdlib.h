@@ -2,5 +2,5 @@
 #include "../kernel.h"
 
 long rand(void);
-long atoi(char *string);
-void itoa(long n, char *s);
+long atoi(const char *);
+void *itoa(long, char *);
