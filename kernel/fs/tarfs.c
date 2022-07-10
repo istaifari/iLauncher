@@ -155,12 +155,11 @@ uint64_t tarfs_convert_number(char *num)
     return value;
 }
 
-void *tarfs_install()
+void *tarfs_install(uint32_t address, uint32_t end)
 {
-    placement_address = *(uint32_t *)(mboot_ptr->mods_addr + LOAD_MEMORY_ADDRESS);
     uint32_t i, f = 0;
 
-    tarfs_parse(*(uint32_t *)(mboot_ptr->mods_addr), placement_address);
+    tarfs_parse(address, end);
 
     tarfs_root_node = (fs_node_t *)kmalloc(sizeof(fs_node_t));
     strcpy(tarfs_root_node->name, "ram");
@@ -228,11 +227,9 @@ void *tarfs_install()
             break;
         }
 
-        // printf("add %s to %s parent\n", node->name, p_node->name);
         p_node->inode = (uint32_t)list_add((list_t *)p_node->inode, node);
         path_free(p);
     }
-    return (struct tar_header *)(*(uint32_t *)(mboot_ptr->mods_addr));
     return tarfs_root_node;
 }
 
@@ -244,8 +241,6 @@ void *tarfs_get_file(struct tar_header *node, const char *filename)
     {
         if (strcmp(node->name, filename) == 0)
             return (char *)node + 512;
-        if (node->name[0] == '\0')
-            break;
 
         size_t len = tarfs_convert_number(node->size);
 
@@ -269,8 +264,6 @@ size_t tarfs_get_len(struct tar_header *node, const char *filename)
 
         if (strcmp(node->name, filename) == 0)
             return len;
-        if (node->name[0] == '\0')
-            break;
 
         uintptr_t next_tar = (uintptr_t)node;
         next_tar += len + 0x200;
@@ -295,7 +288,7 @@ uint32_t tarfs_getsize(const char *in)
     return size;
 }
 
-uint32_t tarfs_parse(unsigned int address, uint32_t end)
+uint32_t tarfs_parse(uint32_t address, uint32_t end)
 {
     for (files = 0;; files++)
     {

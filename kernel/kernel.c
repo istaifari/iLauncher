@@ -146,7 +146,9 @@ void _kernel(multiboot_info_t *ebx, uintptr_t esp)
     kheap_install(KHEAP_START, KHEAP_START + KHEAP_INITIAL_SIZE, KHEAP_MAX_ADDRESS);
     devices_setup();
     // if (mboot_ptr->mods_count > 0)
-    //     initfs = tarfs_install();
+    //     fs_root = tarfs_install(
+    //         ((multiboot_module_t *)(mboot_ptr->mods_addr))[0].mod_start,
+    //         ((multiboot_module_t *)(mboot_ptr->mods_addr))[0].mod_end);
     // else
     //     _kernel_ramdisk_error();
     os_version = tarfs_get_file(initfs, "version.txt");

@@ -542,6 +542,14 @@ void vga_update()
 			vga_drawtext("keybuffer enter: true", 0, 8 * 5, 0x02, font_8x8, 8, 8);
 		else
 			vga_drawtext("keybuffer enter: false", 0, 8 * 5, 0x04, font_8x8, 8, 8);
+		if (keyboard_ps2->isLeftShiftPressed && keyboard_ps2->isRightShiftPressed)
+		{
+			asm("cli");
+			kfree(vga_buffer[0]);
+			kfree(vga_buffer[1]);
+			_reboot();
+			asm("sti");
+		}
 		gui_window_scancode(window, "\n\bb sxzcSXZC", vga_keys_handler, keyboard_get_key());
 		for (long l = 0; l < 24; l++)
 		{

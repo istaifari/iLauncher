@@ -66,6 +66,7 @@ _start_v86m:
     invlpg[0]
     mov esp, stack_start+stack_end
     push esp
+    add ebx, 0xC0000000
 	push ebx
 	call _kernel
 loop:

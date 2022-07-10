@@ -37,7 +37,7 @@ enum tar_typeflag
     FIFOTYPE = '6',
 };
 
-void *tarfs_install();
+void *tarfs_install(uint32_t address, uint32_t end);
 uint64_t tarfs_convert_number(char *num);
 void *tarfs_get_file(struct tar_header *node, const char *filename);
 size_t tarfs_get_len(struct tar_header *node, const char *filename);
