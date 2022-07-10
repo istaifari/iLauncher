@@ -31,7 +31,7 @@ void gdt_install()
 {
     gdtr.limit = sizeof(gdt) - 1;
     gdtr.base = (uint32_t)&gdt;
-    memset(&gdt, 0, sizeof(gdt));
+    memset(&gdt, 0, gdtr.limit);
     gdt_set_gate(0, 0, 0, 0, 0);
     gdt_set_gate(1, 0, 0xFFFFFFFF, 0x9A, 0xCF);
     gdt_set_gate(2, 0, 0xFFFFFFFF, 0x92, 0xCF);

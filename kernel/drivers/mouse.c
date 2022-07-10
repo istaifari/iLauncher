@@ -235,10 +235,9 @@ mouse_t *mouse_info_setup()
 void InitPS2Mouse()
 {
     unsigned char status;
+    idt_set_gate(32 + 12, MouseInt_Handler, 0x08, 0x8E);
     if (!mouse_ps2)
     {
-        asm("cli");
-        mouse_ps2 = mouse_info_setup();
         MouseWait(1);
         outb(0x64, 0xA8);
         MouseWait(1);
@@ -253,7 +252,5 @@ void InitPS2Mouse()
         MouseRead();
         MouseWrite(0xF4);
         MouseRead();
-        asm("sti");
     }
-    idt_set_gate(32 + 12, MouseInt_Handler, 0x08, 0x8E);
 }

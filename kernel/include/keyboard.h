@@ -10,6 +10,7 @@ typedef struct keyboard
   unsigned long keymap_size;
   char base[512];
   char shift[512];
+  char press[512];
 } keyboard_t;
 
 typedef struct keyboard_keybuffer
@@ -18,6 +19,8 @@ typedef struct keyboard_keybuffer
   size_t size;
 } keyboard_keybuffer_t;
 
+extern keyboard_t en_international;
+extern keyboard_t ptbr_abnt2;
 extern keyboard_t *keyboard_ps2;
 
 keyboard_t *keyboard_info_setup_layout(keyboard_t keyboard);

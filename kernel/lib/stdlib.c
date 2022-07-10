@@ -64,7 +64,7 @@ void sleep(long milisecond)
     /*for (long volatile i = 0; i < (long volatile)milisecond; i++)
         for (long volatile j = 0; j < (long volatile)64000000; j++)
             ;*/
-    long tmp = timer->timefull + milisecond;
-    while (timer->timefull >= tmp)
+    long tmp = global_timer->timefull + milisecond;
+    while (global_timer->timefull >= tmp)
         ;
 }

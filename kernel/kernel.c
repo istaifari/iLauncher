@@ -109,24 +109,41 @@ void _kernel_ramdisk_error()
     reboot();
 }
 
-void devices_install()
+void devices_setup()
 {
-    InitTimer();
-    InitPS2Keyboard();
-    InitPS2Mouse();
-    ResetPS2Keyboard();
+    if (!global_timer)
+    {
+        global_timer = kmalloc(sizeof(clock_t) * ((sizeof(struct time_t) * ((sizeof(long) * 4))) * (sizeof(char) * (2 * 3))));
+        global_timer->time = kmalloc((sizeof(struct time_t) * ((sizeof(long) * 4))) * (sizeof(char) * (2 * 3)));
+        global_timer->time->number = kmalloc(sizeof(long) * 4);
+        global_timer->time->number[3] = 0;
+        global_timer->time->number[2] = 0;
+        global_timer->time->number[1] = 0;
+        global_timer->time->number[0] = 0;
+        global_timer->time->hh = kmalloc(sizeof(char) * (2));
+        memset(global_timer->time->hh, '0', 1);
+        global_timer->time->mm = kmalloc(sizeof(char) * (2));
+        memset(global_timer->time->mm, '0', 1);
+        global_timer->time->ss = kmalloc(sizeof(char) * (2));
+        memset(global_timer->time->ss, '0', 1);
+        global_timer->timeout = 0;
+    }
+    if (!keyboard_ps2)
+        keyboard_ps2 = keyboard_info_setup_layout(en_international);
+    if (!mouse_ps2)
+        mouse_ps2 = mouse_info_setup();
 }
 
-void _kernel(multiboot_info_t *mboot)
+void _kernel(multiboot_info_t *ebx, uintptr_t esp)
 {
-    mboot_ptr = mboot;
+    mboot_ptr = ebx;
     gdt_install();
     idt_install();
     tss_install(5, 0x10, 0);
     pmm_install(1096 * M);
     paging_install();
     kheap_install(KHEAP_START, KHEAP_START + KHEAP_INITIAL_SIZE, KHEAP_MAX_ADDRESS);
-    devices_install();
+    devices_setup();
     // if (mboot_ptr->mods_count > 0)
     //     initfs = tarfs_install();
     // else

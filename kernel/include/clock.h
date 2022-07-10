@@ -16,7 +16,7 @@ typedef struct clock
     long volatile timeout;
 } clock_t;
 
-extern clock_t *timer;
+extern clock_t *global_timer;
 
 void clock_update();
 void *clock_read(clock_t *object, long index);

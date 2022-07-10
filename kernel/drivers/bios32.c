@@ -7,19 +7,19 @@ void (*rebased_bios32_helper)() = (void *)0x7c00;
 
 void bios32_install()
 {
-    asm("cli");
+    disable();
     gdt_set_gate(6, 0, 0xffffffff, 0x9A, 0x0f);
     gdt_set_gate(7, 0, 0xffffffff, 0x92, 0x0f);
     real_gdt_ptr.base = (uint32_t)gdt;
     real_gdt_ptr.limit = sizeof(gdt) - 1;
     real_idt_ptr.base = 0;
     real_idt_ptr.limit = 0x3ff;
-    asm("sti");
+    enable();
 }
 
 void bios32_service(uint8_t int_num, register16_t *in_reg, register16_t *out_reg)
 {
-    asm("cli");
+    disable();
     gdt_set_gate(6, 0, 0xffffffff, 0x9A, 0x0f);
     gdt_set_gate(7, 0, 0xffffffff, 0x92, 0x0f);
     void *new_code_base = (void *)0x7c00;
@@ -41,4 +41,5 @@ void bios32_service(uint8_t int_num, register16_t *in_reg, register16_t *out_reg
     memcpy(out_reg, t, sizeof(register16_t));
     gdt_install();
     idt_install();
+    enable();
 }

@@ -532,7 +532,7 @@ void vga_update()
 	memset(window, 0, sizeof(Window));
 	char *strfile = tarfs_get_file(initfs, "file.txt");
 	keyboard_keybuffer_t *keybuffer = keyboard_keybuffer_setup(16);
-	// clock_settime(timer, "23:59:40"); // is not working
+	// clock_settime(global_timer, "23:59:40"); // is not working
 	while (1)
 	{
 		vga_clear(0x01);
@@ -552,11 +552,11 @@ void vga_update()
 		}
 		vga_drawchar(keyboard_get_key(), 0, 0, 0x3f, font_8x8, 8, 8, false);
 		vga_drawtext(mouse_keyboard, 0, 8, 0x3f, font_8x8, 8, 8);
-		vga_drawtext(clock_read(timer, 3), (8 * 3) * 0, 8 * 2, 0x3f, font_8x8, 8, 8);
+		vga_drawtext(clock_read(global_timer, 3), (8 * 3) * 0, 8 * 2, 0x3f, font_8x8, 8, 8);
 		vga_drawtext(":", (8) * 2, 8 * 2, 0x3f, font_8x8, 8, 8);
-		vga_drawtext(clock_read(timer, 2), (8 * 3) * 1, 8 * 2, 0x3f, font_8x8, 8, 8);
+		vga_drawtext(clock_read(global_timer, 2), (8 * 3) * 1, 8 * 2, 0x3f, font_8x8, 8, 8);
 		vga_drawtext(":", (8) * 5, 8 * 2, 0x3f, font_8x8, 8, 8);
-		vga_drawtext(clock_read(timer, 1), (8 * 3) * 2, 8 * 2, 0x3f, font_8x8, 8, 8);
+		vga_drawtext(clock_read(global_timer, 1), (8 * 3) * 2, 8 * 2, 0x3f, font_8x8, 8, 8);
 		vga_drawtext(strfile, 0, 8 * 3, 0x3f, font_8x8, 8, 8);
 		vga_drawtext(keyboard_keybuffer_read(keybuffer), 0, 8 * 4, 0x3f, font_8x8, 8, 8);
 		vga_drawimage(MousePointer_24x32, mouse_ps2->x, mouse_ps2->y, mouse_ps2->width, mouse_ps2->height);

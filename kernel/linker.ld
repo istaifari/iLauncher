@@ -4,15 +4,15 @@ ENTRY(_start)
 SECTIONS
 {
     . = 0x00100000;
-    
-    .multiboot.data :
-    {
-        *(.multiboot.data)
-    }
 
     .multiboot.text :
     {
         *(.multiboot.text)
+    }
+
+    .multiboot.data :
+    {
+        *(.multiboot.data)
     }
 
     . += 0xC0000000;

@@ -65,6 +65,7 @@ _start_v86m:
 	mov dword[TEMP_PAGE_DIRECTORY], 0
     invlpg[0]
     mov esp, stack_start+stack_end
+    push esp
 	push ebx
 	call _kernel
 loop:

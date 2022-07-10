@@ -52,15 +52,16 @@ void idt_install()
 {
     idtr.limit = sizeof(idt) - 1;
     idtr.base = (uint32_t)&idt;
-    memset(&idt, 0, sizeof(idt));
-    idt_set_gate(14, PageFault_Handler, 0x08, 0x8E);
+    memset(&idt, 0, idtr.limit);
+    InitPS2Keyboard();
+    InitPS2Mouse();
+    InitTimer();
     for (long i = 0; i < 15; i++)
         if (idt[32 + i].sel == 0)
             idt_set_gate(32 + i, irq_null, 0x08, 0x8E);
-    load_idt(idtr);
     RemapPIC();
     outb(0x21, 0b11111001);
     outb(0xA1, 0b11101111);
     idt_set_irq("ME");
-    asm("sti");
+    load_idt(idtr);
 }

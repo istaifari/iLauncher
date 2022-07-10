@@ -8,7 +8,7 @@ make: *** No rule to make target 'all'.  Stop.
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Sat Jul  9 21:01:52 2022
+# Make data base, printed on Sun Jul 10 14:43:31 2022
 
 # Variables
 
@@ -17,7 +17,7 @@ GDK_BACKEND = x11
 # environment
 LC_ALL = C
 # environment
-VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-09619951-3d6f-446d-be2f-246d92043314.sock
+VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-e3b97896-f5e0-43ba-aa77-d3f778b46080.sock
 # environment
 MANDATORY_PATH = /usr/share/gconf/xubuntu.mandatory.path
 # environment
@@ -99,7 +99,7 @@ MAKEFILE_LIST :=
 # environment
 VSCODE_VERBOSE_LOGGING = true
 # environment
-VSCODE_PID = 12474
+VSCODE_PID = 8104
 # environment
 XDG_SESSION_TYPE = x11
 # automatic
@@ -107,7 +107,7 @@ XDG_SESSION_TYPE = x11
 # environment
 CLUTTER_BACKEND = x11
 # environment
-SESSION_MANAGER = local/istaifari:@/tmp/.ICE-unix/3723,unix/istaifari:/tmp/.ICE-unix/3723
+SESSION_MANAGER = local/istaifari:@/tmp/.ICE-unix/3725,unix/istaifari:/tmp/.ICE-unix/3725
 # automatic
 *F = $(notdir $*)
 # environment
@@ -174,7 +174,6 @@ XDG_SEAT_PATH = /org/freedesktop/DisplayManager/Seat0
 DESKTOP_SESSION = xubuntu
 # environment
 ORIGINAL_XDG_CURRENT_DESKTOP = XFCE
- 
 # 'override' directive
 GNUMAKEFLAGS := 
 # environment
@@ -184,7 +183,7 @@ LOGNAME = istaifari
 # environment
 GIO_LAUNCHED_DESKTOP_FILE = /usr/share/applications/code.desktop
 # environment
-PLATFORMIO_PATH = /home/istaifari/.platformio/penv/bin:/home/istaifari/.platformio/penv:/home/istaifari/.platformio/python3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/home/istaifari/.dotnet/tools:/home/istaifari/.dotnet/tools
+PLATFORMIO_PATH = /home/istaifari/.platformio/python3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/home/istaifari/.dotnet/tools:/home/istaifari/.dotnet/tools
 # environment
 XDG_VTNR = 7
 # makefile
@@ -202,7 +201,7 @@ MAKE_VERSION := 4.3
 # environment
 LC_MEASUREMENT = pt_BR.UTF-8
 # environment
-GIO_LAUNCHED_DESKTOP_FILE_PID = 12474
+GIO_LAUNCHED_DESKTOP_FILE_PID = 8104
 # environment
 _ = /usr/share/code/code
 # environment
@@ -280,6 +279,7 @@ Makefile:
 # Not a target:
 all:
 #  Command line target.
+ 
 #  Implicit rule search has been done.
 #  File does not exist.
 #  File has not been updated.
@@ -312,6 +312,6 @@ GNUmakefile:
 # strcache performance: lookups = 23 / hit rate = 13%
 # hash-table stats:
 # Load=20/8192=0%, Rehash=0, Collisions=0/23=0%
-# Finished Make data base on Sat Jul  9 21:01:52 2022
+# Finished Make data base on Sun Jul 10 14:43:31 2022
 
  

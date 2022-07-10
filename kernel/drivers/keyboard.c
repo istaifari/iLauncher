@@ -369,10 +369,6 @@ void ScanKey(keyboard_t *keyboard, uint8_t scancode)
 
 void InitPS2Keyboard()
 {
-  asm("cli");
-  if (!keyboard_ps2)
-    keyboard_ps2 = keyboard_info_setup_layout(en_international);
-  asm("sti");
   idt_set_gate(32 + 1, KeyboardInt_Handler, 0x08, 0x8E);
 }
 

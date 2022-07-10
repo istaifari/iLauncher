@@ -36,6 +36,16 @@
 #define M (1024*K)
 #define G (1024*M)
 
+static void disable()
+{
+	asm("cli");
+}
+
+static void enable()
+{
+	asm("sti");
+}
+
 static void panic_assert(const char *file, uint32_t line, const char *desc)
 {
 	return;
