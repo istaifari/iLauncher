@@ -1,6 +1,4 @@
-#include "../include/keyboard.h"
-#include "../include/video.h"
-#include "../kernel.h"
+#include <stdio.h>
 
 void *scan(char *buf, long n)
 {
@@ -11,7 +9,7 @@ void *scan(char *buf, long n)
 	int startpos = get_cursor_pos() % 80;
 	while (stat)
 	{
-		key = GetKey();
+		key = keyboard_get_key();
 		if (key == 0)
 			continue;
 		switch (key)

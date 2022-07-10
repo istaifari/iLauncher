@@ -1,5 +1,5 @@
 #pragma once
-#include "../kernel.h"
+#include <kernel.h>
 
 typedef void *type_t;
 typedef signed char (*lessthan_predicate_t)(type_t, type_t);

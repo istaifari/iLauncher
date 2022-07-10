@@ -1,4 +1,4 @@
-#include "../include/tarfs.h"
+#include <tarfs.h>
 
 fs_node_t *tarfs_root_node = 0;
 tar_header_t *headers[64];
@@ -157,7 +157,7 @@ uint64_t tarfs_convert_number(char *num)
 
 void *tarfs_install()
 {
-    placement_address = *(uint32_t *)(mboot_ptr->mods_addr + 4);
+    placement_address = *(uint32_t *)(mboot_ptr->mods_addr + LOAD_MEMORY_ADDRESS);
     uint32_t i, f = 0;
 
     tarfs_parse(*(uint32_t *)(mboot_ptr->mods_addr), placement_address);
@@ -232,16 +232,20 @@ void *tarfs_install()
         p_node->inode = (uint32_t)list_add((list_t *)p_node->inode, node);
         path_free(p);
     }
-    //return tarfs_root_node;
     return (struct tar_header *)(*(uint32_t *)(mboot_ptr->mods_addr));
+    return tarfs_root_node;
 }
 
 void *tarfs_get_file(struct tar_header *node, const char *filename)
 {
+    if (!node)
+        return NULL;
     while (node->name[0])
     {
         if (strcmp(node->name, filename) == 0)
             return (char *)node + 512;
+        if (node->name[0] == '\0')
+            break;
 
         size_t len = tarfs_convert_number(node->size);
 
@@ -257,12 +261,16 @@ void *tarfs_get_file(struct tar_header *node, const char *filename)
 
 size_t tarfs_get_len(struct tar_header *node, const char *filename)
 {
+    if (!node)
+        return 0;
     while (node->name[0])
     {
         size_t len = tarfs_convert_number(node->size);
 
         if (strcmp(node->name, filename) == 0)
             return len;
+        if (node->name[0] == '\0')
+            break;
 
         uintptr_t next_tar = (uintptr_t)node;
         next_tar += len + 0x200;

@@ -1,4 +1,5 @@
-#include "../include/vga.h"
+#include <vga.h>
+#include <vesa.h>
 
 #define VGA_AC_INDEX 0x3C0
 #define VGA_AC_WRITE 0x3C0
@@ -21,16 +22,104 @@
 #define VGA_NUM_AC_REGS 21
 #define VGA_NUM_REGS (1 + VGA_NUM_SEQ_REGS + VGA_NUM_CRTC_REGS + VGA_NUM_GC_REGS + VGA_NUM_AC_REGS)
 
-unsigned vga_width, vga_vm_width, vga_height, vga_vm_height, vga_bpp, vga_bufsize;
+uint32_t curr_mode;
+unsigned vga_width, vga_height, vga_bpp, vga_bufsize;
 
-char *vga_oldbackbuffer;
-char *vga_backbuffer;
-char *vga_memory;
+mode_info_t *vbe_screen;
+
+int8_t *vga_buffer[2];
+int8_t *vga_memory = 0x00000;
+intptr_t vga_memory_address = 0x00000;
 uint32_t *CursorImg = (uint32_t *)(2);
 
-static unsigned GetFramebuffer(void)
+mode_info_t *vesa_get_info()
 {
-	unsigned seg;
+	mode_info_t *mode_info = kmalloc(sizeof(mode_info_t));
+	vesa_get_mode((uint16_t)curr_mode, mode_info);
+	return mode_info;
+}
+
+void vesa_memcpy24_32(uint24_t *dest, uint32_t *src, uint32_t count)
+{
+	uint24_t t;
+	uint32_t i;
+	for (i = 0; i < count; i++)
+	{
+		t.integer = src[i];
+		dest[i] = t;
+	}
+}
+void vesa_memset_rgb(uint8_t *dest, uint32_t rgb, uint32_t count)
+{
+	if (count % 3 != 0)
+		count = count + 3 - (count % 3);
+	uint8_t r = rgb & 0x00ff0000;
+	uint8_t g = rgb & 0x0000ff00;
+	uint8_t b = rgb & 0x000000ff;
+	for (int i = 0; i < count; i++)
+	{
+		*dest++ = r;
+		*dest++ = g;
+		*dest++ = b;
+	}
+}
+
+void vesa_get_mode(uint16_t mode, mode_info_t *mode_info)
+{
+	register16_t reg_in = {0};
+	register16_t reg_out = {0};
+	reg_in.ax = 0x4F01;
+	reg_in.cx = mode;
+	reg_in.di = 0x9000;
+	bios32_service(BIOS_GRAPHICS_SERVICE, &reg_in, &reg_out);
+	memcpy(mode_info, (void *)0x9000, sizeof(mode_info_t));
+}
+
+void vesa_set_mode(uint32_t mode)
+{
+	register16_t reg_in = {0};
+	register16_t reg_out = {0};
+	reg_in.ax = 0x4F02;
+	reg_in.bx = mode;
+	bios32_service(BIOS_GRAPHICS_SERVICE, &reg_in, &reg_out);
+	curr_mode = mode;
+}
+
+uint32_t vesa_find_mode(uint32_t width, uint32_t height, uint32_t bpp)
+{
+	vbe_info_t *vbe_info;
+	mode_info_t *mode_info;
+	register16_t reg_in = {0};
+	register16_t reg_out = {0};
+	reg_in.ax = 0x4F00;
+	reg_in.di = 0x9500;
+	bios32_service(BIOS_GRAPHICS_SERVICE, &reg_in, &reg_out);
+	memcpy(vbe_info, (void *)0x9500, sizeof(vbe_info_t));
+	uint16_t *mode_list = vbe_info->video_modes;
+	uint16_t mode_number = *mode_list++;
+	while (mode_number != 0xffff)
+	{
+		vesa_get_mode(mode_number, mode_info);
+		if (mode_info->resolutionX == 1024 && mode_info->resolutionY == 768 && mode_info->bpp == 32)
+			return mode_number;
+		mode_number = *mode_list++;
+	}
+	return 0;
+}
+
+void vesa_install()
+{
+	bios32_install();
+	vesa_set_mode(0x144 | 0x4000);
+	vbe_screen = vesa_get_info();
+	vga_memory = (char *)(vbe_screen->physbase);
+	allocate_region(kpage_dir, (uint32_t)vga_memory, (uint32_t)(vga_memory + 1024 * 768 * 4), 1, 1, 1);
+	memset(vga_memory, 0xf0, 1024 * 768);
+}
+
+static uintptr_t GetFramebuffer(void)
+{
+	uintptr_t seg;
 	outb(VGA_GC_INDEX, 0x06);
 	seg = ((inb(VGA_GC_DATA) >> 2) & 3);
 	switch (seg)
@@ -54,31 +143,31 @@ void set_plane(uint64_t p)
 	outb(VGA_SEQ_DATA, 1 << p);
 }
 
-void vga_putpixel_memory(long xy, long c)
+void vga_putpixel_memory(long x, long y, long c)
 {
-	if (xy < 0 || xy >= vga_width * vga_height)
+	if ((y * vga_width + x) < 0 || (y * vga_width + x) >= vga_width * vga_height)
 		return;
 	long pos = 0;
 	if (vga_bpp == 4)
 	{
-		pos = xy / 4;
-		vga_memory[pos] = (vga_memory[pos] & ~(0xC0 >> ((xy & 3) * 2))) | (((c & 3) * 0x55) & (0xC0 >> ((xy & 3) * 2)));
+		pos = (y * vga_width + x) / 4;
+		vga_memory[pos] = (vga_memory[pos] & ~(0xC0 >> ((x & 3) * 2))) | (((c & 3) * 0x55) & (0xC0 >> ((x & 3) * 2)));
 	}
 	if (vga_bpp == 8)
 	{
-		pos = xy;
+		pos = (y * vga_width + x);
 		vga_memory[pos] = c;
 	}
 	if (vga_bpp == 16)
 	{
-		pos = xy / 8;
+		pos = (y * vga_width + x) / 8;
 		for (long p = 0; p < 4; p++)
 		{
 			set_plane(p);
 			if ((1 << p) & c)
-				vga_memory[pos] |= (0x80 >> ((xy & 7) * 1));
+				vga_memory[pos / 2] |= (0x80 >> ((x & 7) * 1));
 			else
-				vga_memory[pos] &= ~(0x80 >> ((xy & 7) * 1));
+				vga_memory[pos / 2] &= ~(0x80 >> ((x & 7) * 1));
 		}
 	}
 }
@@ -87,8 +176,7 @@ void vga_putpixel(long x, long y, long c)
 {
 	if (x < 0 || x >= vga_width || y < 0 || y >= vga_height)
 		return;
-	else
-		vga_backbuffer[y * vga_width + x] = c;
+	vga_buffer[0][y * vga_width + x] = c;
 }
 
 void vga_drawimage(const uint32_t *pixels, long x, long y, long w, long h)
@@ -99,7 +187,8 @@ void vga_drawimage(const uint32_t *pixels, long x, long y, long w, long h)
 		for (i = 0; i < w; i++, j++)
 		{
 			// if (pixels[j] & 0xFF000000)
-			vga_putpixel(x + i, y + l, pixels[j + 2]);
+			if (pixels[j + 2] != 0x40)
+				vga_putpixel(x + i, y + l, pixels[j + 2]);
 		}
 	}
 }
@@ -156,6 +245,8 @@ void vga_drawchar(char chr, long x, long y, long c, unsigned char *font, long fo
 
 void vga_drawtext(char *text, long x, long y, long c, unsigned char *font, long font_w, long font_h)
 {
+	if (!text)
+		return;
 	long i, x_pos, y_pos, col, row, stop;
 	char chr;
 
@@ -207,15 +298,15 @@ void vga_drawtext(char *text, long x, long y, long c, unsigned char *font, long 
 	}
 }
 
-unsigned vga_getresolution(int select)
+uint32_t vga_getresolution(int select)
 {
 	if (select == 1)
 	{
-		return vga_vm_width;
+		return vga_width;
 	}
 	else if (select == 2)
 	{
-		return vga_vm_height;
+		return vga_height;
 	}
 	else
 	{
@@ -223,41 +314,95 @@ unsigned vga_getresolution(int select)
 	}
 }
 
-void vga_buffercopy(char *b1, char *b2, size_t bsz)
+uintptr_t uint(intptr_t i)
 {
-	for (size_t i = 0; i < vga_bufsize; i++)
-	{
-		if (b1[i] != b2[i])
-			vga_putpixel_memory(i, b1[i]);
-	}
+	if (i < 0)
+		return -i;
+	else
+		return i;
 }
 
-void vga_setupFramebuffer(unsigned VMWidth, unsigned VMHeight, unsigned ScreenWidth, unsigned ScreenHeight, unsigned BitsPerPixel)
+void vga_buffercopy(char *b1, char *b2, char *mem, size_t bsz)
+{
+	uint64_t num_dwords = bsz / 8;
+	uint64_t num_bytes = bsz % 8;
+	uint64_t *dest64 = (uint64_t *)b1;
+	uint64_t *src64 = (uint64_t *)b2;
+	uint64_t *mem64 = (uint64_t *)mem;
+	uint8_t *dest8 = ((uint8_t *)b1) + num_dwords * 8;
+	uint8_t *src8 = ((uint8_t *)b2) + num_dwords * 8;
+	uint8_t *mem8 = ((uint8_t *)mem) + num_dwords * 8;
+	if (vga_bpp == 8)
+		goto vga_bpp_8;
+	if (vga_bpp == 16)
+		goto vga_bpp_16;
+vga_bpp_8:
+	for (uint64_t i = 0; i < num_dwords; i++)
+		if (dest64[i] != src64[i])
+			mem64[i] = dest64[i];
+	for (uint64_t i = 0; i < num_bytes; i++)
+		if (dest8[i] != src8[i])
+			mem8[i] = dest8[i];
+	goto end;
+vga_bpp_16:
+	for (uint64_t i = 0; i < num_dwords; i++)
+		if (dest64[i] != src64[i])
+			for (long p = 0; p < 4; p++)
+			{
+				set_plane(p);
+				if ((1 << p) & dest64[i])
+					mem64[i / 8] |= uint(0x80 >> uint(i & 7));
+				else
+					mem64[i / 8] &= ~uint(0x80 >> uint(i & 7));
+			}
+	for (uint64_t i = 0; i < num_bytes; i++)
+	{
+		if (dest8[i] != src8[i])
+			mem8[i / 8] = dest8[i];
+	}
+	goto end;
+	/*for (size_t y = 0; y < vga_height; y++)
+		for (size_t x = 0; x < vga_width; x++)
+			if (b1[y * vga_width + x] != b2[y * vga_width + x])
+				vga_putpixel_memory(x, y, b1[y * vga_width + x]);*/
+end:
+	return;
+}
+
+void vga_keys_handler(WindowInfo info);
+long xo = (128 - 24) / 2;
+long yo = (128 - 24) / 2;
+long co = 0x02;
+
+void vga_setupFramebuffer(unsigned ScreenWidth, unsigned ScreenHeight, unsigned BitsPerPixel)
 {
 	vga_width = ScreenWidth;
 	vga_height = ScreenHeight;
-	vga_vm_width = VMWidth;
-	vga_vm_height = VMHeight;
 	vga_bpp = BitsPerPixel;
-	vga_bufsize = vga_vm_width * vga_vm_height;
-	kfree(vga_backbuffer);
-	kfree(vga_oldbackbuffer);
-	vga_backbuffer = (char *)(kmalloc(vga_bufsize));
-	vga_oldbackbuffer = (char *)(kmalloc(vga_bufsize));
-	vga_memory = (char *)(GetFramebuffer());
-	memset(vga_oldbackbuffer, 0x00, vga_bufsize);
-	memset(vga_backbuffer, 0x00, vga_bufsize);
-	for (size_t i = 0; i < vga_bufsize; i++)
-		vga_putpixel_memory(i, 0x00);
-	Mouse.width = MousePointer_24x32[0];
-	Mouse.height = MousePointer_24x32[1];
-	Mouse.x = (vga_getresolution(1) - Mouse.width) / 2;
-	Mouse.y = (vga_getresolution(2) - Mouse.height) / 2;
-	Mouse.x_old = Mouse.x;
-	Mouse.y_old = Mouse.y;
+	vga_bufsize = vga_width * vga_height;
+	kfree(vga_buffer[0]);
+	kfree(vga_buffer[1]);
+	if (vga_memory_address != alloc_address(GetFramebuffer()))
+	{
+		vga_memory = (int8_t *)(alloc_address(GetFramebuffer()));
+		vga_memory_address = alloc_address(GetFramebuffer());
+	}
+	vga_buffer[0] = (int8_t *)(kmalloc(vga_bufsize));
+	vga_buffer[1] = (int8_t *)(kmalloc(vga_bufsize));
+	memset(vga_buffer[0], 0x00, vga_bufsize);
+	memset(vga_buffer[1], 0x00, vga_bufsize);
+	for (size_t y = 0; y < vga_height; y++)
+		for (size_t x = 0; x < vga_width; x++)
+			vga_putpixel_memory(x, y, 0x00);
+	mouse_ps2->width = MousePointer_24x32[0];
+	mouse_ps2->height = MousePointer_24x32[1];
+	mouse_ps2->x = (vga_getresolution(1) - mouse_ps2->width) / 2;
+	mouse_ps2->y = (vga_getresolution(2) - mouse_ps2->height) / 2;
+	mouse_ps2->x_old = mouse_ps2->x;
+	mouse_ps2->y_old = mouse_ps2->y;
 }
 
-void vga_WriteResolutionRegister(uint8_t *rgs, unsigned ow, unsigned oh, unsigned w, unsigned h)
+void vga_WriteResolutionRegister(uint8_t *rgs, unsigned w, unsigned h)
 {
 	uint8_t bpp = rgs[0];
 	uint8_t *regs = kmalloc(62);
@@ -293,19 +438,19 @@ void vga_WriteResolutionRegister(uint8_t *rgs, unsigned ow, unsigned oh, unsigne
 	}
 	(void)inb(VGA_INSTAT_READ);
 	outb(VGA_AC_INDEX, 0x20);
-	vga_setupFramebuffer(ow, oh, w, h, bpp);
+	vga_setupFramebuffer(w, h, bpp);
 	kfree(regs);
 }
 
 void vga_clear(long c)
 {
-	memcpy(vga_oldbackbuffer, vga_backbuffer, vga_bufsize);
-	memset(vga_backbuffer, c, vga_bufsize);
+	memcpy(vga_buffer[1], vga_buffer[0], vga_bufsize);
+	memset(vga_buffer[0], c, vga_bufsize);
 }
 
 void vga_swapbuffers()
 {
-	vga_buffercopy(vga_backbuffer, vga_oldbackbuffer, vga_bufsize);
+	vga_buffercopy(vga_buffer[0], vga_buffer[1], vga_memory, vga_bufsize);
 }
 
 void vga_start()
@@ -313,34 +458,24 @@ void vga_start()
 	char *resolution = "320x200x8";
 	if (resolution == "320x200x8")
 	{
-		vga_WriteResolutionRegister(g_320x200x8, 320, 200, 320, 200);
+		vga_WriteResolutionRegister(g_320x200x8, 320, 200);
 	}
 	else if (resolution == "320x200x4")
 	{
-		vga_WriteResolutionRegister(g_320x200x4, 320, 200, 320, 200);
+		vga_WriteResolutionRegister(g_320x200x4, 320, 200);
 	}
 	else if (resolution == "640x480x16")
 	{
-		vga_WriteResolutionRegister(g_640x480x16, 640, 480, 640, 480);
+		vga_WriteResolutionRegister(g_640x480x16, 640, 480);
 	}
 	else if (resolution == "720x480x16")
 	{
-		vga_WriteResolutionRegister(g_720x480x16, 720, 480, 720, 480);
+		vga_WriteResolutionRegister(g_720x480x16, 720, 480);
 	}
 }
 
-long xo = (128 - 24) / 2;
-long yo = (128 - 24) / 2;
-long co = 0x02;
-
 void vga_keys_handler(WindowInfo info)
 {
-	if (info.key == '!')
-		vga_WriteResolutionRegister(g_320x200x8, 320, 200, 320, 200);
-	if (info.key == '@')
-		vga_WriteResolutionRegister(g_640x480x16, 640, 480, 640, 480);
-	if (info.key == '#')
-		vga_WriteResolutionRegister(g_720x480x16, 720, 480, 720, 480);
 	if (info.key == 's')
 		yo -= 2;
 	if (info.key == 'x')
@@ -373,37 +508,49 @@ void vga_keys_handler(WindowInfo info)
 		yo = info.height - 24;
 }
 
+long charlen(char *buffer, char target)
+{
+	long in = 0;
+	for (long i = 0; buffer[i] != '\0'; i++)
+		if (buffer[i] == target)
+			in++;
+	return in;
+}
+
+long charstop(char *buffer, char target, intptr_t offset)
+{
+	long in = 0;
+	for (long i = 0; buffer[i] != '\0'; i++)
+		if (buffer[i + offset] != target)
+			in++;
+	return in;
+}
+
 void vga_update()
 {
-	CursorImg = tga_load("cursor.tga");
-	Mouse.width = MousePointer_24x32[0];
-	Mouse.height = MousePointer_24x32[1];
-	Mouse.x = (vga_getresolution(1) - Mouse.width) / 2;
-	Mouse.y = (vga_getresolution(2) - Mouse.height) / 2;
-	Mouse.x_old = Mouse.x;
-	Mouse.y_old = Mouse.y;
-	Window window;
+	Window *window = kmalloc(sizeof(Window));
+	memset(window, 0, sizeof(Window));
 	char *strfile = tarfs_get_file(initfs, "file.txt");
 	keyboard_keybuffer_t *keybuffer = keyboard_keybuffer_setup(16);
 	// clock_settime(timer, "23:59:40"); // is not working
 	while (1)
 	{
 		vga_clear(0x01);
-		gui_window_update(&window);
-		gui_window_paint(&window);
+		gui_window_update(window);
+		gui_window_paint(window);
 		if (keyboard_keybuffer_scan(keybuffer))
 			vga_drawtext("keybuffer enter: true", 0, 8 * 5, 0x02, font_8x8, 8, 8);
 		else
 			vga_drawtext("keybuffer enter: false", 0, 8 * 5, 0x04, font_8x8, 8, 8);
-		gui_window_scancode(&window, "\n\bb!@# sxzcSXZC", vga_keys_handler, GetKey());
+		gui_window_scancode(window, "\n\bb sxzcSXZC", vga_keys_handler, keyboard_get_key());
 		for (long l = 0; l < 24; l++)
 		{
 			for (long i = 0; i < 24; i++)
 			{
-				gui_window_draw(&window, l + xo, i + yo, co);
+				gui_window_draw(window, l + xo, i + yo, co);
 			}
 		}
-		vga_drawchar(GetKey(), 0, 0, 0x3f, font_8x8, 8, 8, false);
+		vga_drawchar(keyboard_get_key(), 0, 0, 0x3f, font_8x8, 8, 8, false);
 		vga_drawtext(mouse_keyboard, 0, 8, 0x3f, font_8x8, 8, 8);
 		vga_drawtext(clock_read(timer, 3), (8 * 3) * 0, 8 * 2, 0x3f, font_8x8, 8, 8);
 		vga_drawtext(":", (8) * 2, 8 * 2, 0x3f, font_8x8, 8, 8);
@@ -412,34 +559,7 @@ void vga_update()
 		vga_drawtext(clock_read(timer, 1), (8 * 3) * 2, 8 * 2, 0x3f, font_8x8, 8, 8);
 		vga_drawtext(strfile, 0, 8 * 3, 0x3f, font_8x8, 8, 8);
 		vga_drawtext(keyboard_keybuffer_read(keybuffer), 0, 8 * 4, 0x3f, font_8x8, 8, 8);
-		vga_drawimage(MousePointer_24x32, Mouse.x, Mouse.y, Mouse.width, Mouse.height);
-		/*if (i >= 250)
-		{
-			audio_start_beep(1000/2);
-		}
-		else
-		{
-			i++;
-		}
-		if (a >= 450)
-		{
-			audio_stop_beep();
-			i = 0;
-			a = 0;
-		}
-		else
-		{
-			a++;
-		}*/
+		vga_drawimage(MousePointer_24x32, mouse_ps2->x, mouse_ps2->y, mouse_ps2->width, mouse_ps2->height);
 		vga_swapbuffers();
-		/*sleep(1000);
-		  sleep(1000);
-		  sleep(1000);
-		  sleep(1000);
-		  sleep(1000);
-		  sleep(1000);
-		  sleep(1000);
-		  sleep(1000);
-		  _reboot();  */
 	}
 }

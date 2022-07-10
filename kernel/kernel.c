@@ -1,7 +1,7 @@
 #include "kernel.h"
 
-multiboot_info_t *mboot_ptr = 0;
-struct tar_header *initfs = 0;
+multiboot_info_t *mboot_ptr;
+struct tar_header *initfs;
 bool gfx_mode = true;
 char *current_dir = "~";
 char *user_name = "iLauncher";
@@ -13,6 +13,20 @@ int txt_max = 0;
 int errr_cmd = 0;
 char *txt_part;
 char echo_color = 0x0f;
+
+void poweroff()
+{
+    return;
+}
+
+void reboot()
+{
+    uint8_t good = 0x02;
+    while (good & 0x02)
+        good = inb(0x64);
+    outb(0x64, 0xFE);
+    asm("hlt");
+}
 
 void _kernel_errr_cmd(int type)
 {
@@ -92,31 +106,40 @@ void _kernel_ramdisk_error()
         printchar('%', 0x1f, 0);
         sleep(1000);
     }
-    _reboot();
+    reboot();
 }
 
-void _kernel(void *mboot, uint32_t initial_stack)
+void devices_install()
 {
-    tss_install();
+    InitTimer();
+    InitPS2Keyboard();
+    InitPS2Mouse();
+    ResetPS2Keyboard();
+}
+
+void _kernel(multiboot_info_t *mboot)
+{
+    mboot_ptr = mboot;
     gdt_install();
     idt_install();
-    mboot_ptr = (multiboot_info_t *)(mboot);
-    if (mboot_ptr->mods_count > 0)
-        initfs = tarfs_install();
-    else
-        _kernel_ramdisk_error();
-    initialize_paging();
+    tss_install(5, 0x10, 0);
+    pmm_install(1096 * M);
+    paging_install();
+    kheap_install(KHEAP_START, KHEAP_START + KHEAP_INITIAL_SIZE, KHEAP_MAX_ADDRESS);
+    devices_install();
+    // if (mboot_ptr->mods_count > 0)
+    //     initfs = tarfs_install();
+    // else
+    //     _kernel_ramdisk_error();
     os_version = tarfs_get_file(initfs, "version.txt");
     for (long volatile in = 0; in < 2; in++)
     {
         for (long volatile i = 0; i < 64000000; i++)
         {
-            if (default_keyboard->isLeftShiftPressed | default_keyboard->isRightShiftPressed)
+            if (keyboard_ps2->isLeftShiftPressed | keyboard_ps2->isRightShiftPressed)
             {
                 gfx_mode = false;
-                in = 4;
-                i = 64000000;
-                continue;
+                break;
             }
         }
     }
@@ -124,11 +147,10 @@ void _kernel(void *mboot, uint32_t initial_stack)
         _kernel_gfx_mode();
     clear_screen();
     printtext("\f", 0x0f, 0);
-    int buf_size = 32;
-    char buf[buf_size];
-    while (4)
+    keyboard_keybuffer_t *dos_buffer = keyboard_keybuffer_setup(32);
+    while (1)
     {
-        scan(buf, buf_size);
+        scan(dos_buffer->buffer, dos_buffer->size);
         char *clear = "clear";
         char *clean = "clean";
         char *color[32] =
@@ -161,79 +183,79 @@ void _kernel(void *mboot, uint32_t initial_stack)
         poweroff_options[0] = "poweroff";
         poweroff_options[1] = "reboot";
         char *help = "help";
-        if (strcmp(buf, clear) == 0 || strcmp(buf, clean) == 0)
+        if (strcmp(dos_buffer->buffer, clear) == 0 || strcmp(dos_buffer->buffer, clean) == 0)
         {
             clear_screen();
         }
-        else if (strstr(buf, cat))
+        else if (strstr(dos_buffer->buffer, cat))
         {
-            printtext(tarfs_get_file(initfs, buf + strlen(cat)), 0x0f, 0);
+            printtext(tarfs_get_file(initfs, dos_buffer->buffer + strlen(cat)), 0x0f, 0);
             printchar('\n', 0x0f, 0);
         }
-        else if (strcmp(buf, gfx_interface) == 0)
+        else if (strcmp(dos_buffer->buffer, gfx_interface) == 0)
         {
             _kernel_gfx_mode();
         }
-        else if (strcmp(buf, color[0]) == 0)
+        else if (strcmp(dos_buffer->buffer, color[0]) == 0)
         {
             printtext("Colors: \n{\n", 0x0f, 0);
             printtext(colors, 0x0f, 0);
             printtext("}\n", 0x0f, 0);
         }
-        else if (strcmp(buf, color[1]) == 0)
+        else if (strcmp(dos_buffer->buffer, color[1]) == 0)
         {
             echo_color = 0x0;
         }
-        else if (strcmp(buf, color[2]) == 0)
+        else if (strcmp(dos_buffer->buffer, color[2]) == 0)
         {
             echo_color = 0xf;
         }
-        else if (strcmp(buf, color[3]) == 0)
+        else if (strcmp(dos_buffer->buffer, color[3]) == 0)
         {
             echo_color = 0x4;
         }
-        else if (strcmp(buf, color[4]) == 0)
+        else if (strcmp(dos_buffer->buffer, color[4]) == 0)
         {
             echo_color = 0xe;
         }
-        else if (strcmp(buf, color[5]) == 0)
+        else if (strcmp(dos_buffer->buffer, color[5]) == 0)
         {
             echo_color = 0xa;
         }
-        else if (strcmp(buf, color[6]) == 0)
+        else if (strcmp(dos_buffer->buffer, color[6]) == 0)
         {
             echo_color = 0xb;
         }
-        else if (strcmp(buf, color[7]) == 0)
+        else if (strcmp(dos_buffer->buffer, color[7]) == 0)
         {
             echo_color = 0x1;
         }
-        else if (strcmp(buf, color[8]) == 0)
+        else if (strcmp(dos_buffer->buffer, color[8]) == 0)
         {
             echo_color = 0x5;
         }
-        else if (strcmp(buf, color[9]) == 0)
+        else if (strcmp(dos_buffer->buffer, color[9]) == 0)
         {
             echo_color = 0x6;
         }
-        else if (strstr(buf, echo))
+        else if (strstr(dos_buffer->buffer, echo))
         {
-            printtext(buf + strlen(echo), 0x0f, 0);
+            printtext(dos_buffer->buffer + strlen(echo), echo_color, 0);
             printtext("\n", 0x0f, 0);
         }
-        else if (strcmp(buf, help) == 0)
+        else if (strcmp(dos_buffer->buffer, help) == 0)
         {
             printtext("Commands: {\nclear: Clear screen\nclean: Clear screen\necho: Print text to screen\ncolor: Set echo text color\npoweroff: Turn off computer\nreboot: Reboot computer\n}\n", 0x0f, 0);
         }
-        else if (strcmp(buf, poweroff_options[0]) == 0)
+        else if (strcmp(dos_buffer->buffer, poweroff_options[0]) == 0)
         {
-            _shutdown();
+            poweroff();
         }
-        else if (strcmp(buf, poweroff_options[1]) == 0)
+        else if (strcmp(dos_buffer->buffer, poweroff_options[1]) == 0)
         {
-            _reboot();
+            reboot();
         }
-        else if (strlen(buf) > 0)
+        else if (strlen(dos_buffer->buffer) > 0)
         {
             _kernel_errr_cmd(1);
         }

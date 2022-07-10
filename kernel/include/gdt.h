@@ -1,5 +1,5 @@
 #pragma once
-#include "../kernel.h"
+#include <kernel.h>
 
 typedef struct gdt_entry_t
 {
@@ -17,4 +17,7 @@ typedef struct gdtr_t
     uint32_t base;
 } __attribute__((packed)) gdtr_t;
 
+extern gdt_entry_t gdt[8];
+
+void gdt_set_gate(int32_t num, uint32_t base, uint32_t limit, uint8_t access, uint8_t gran);
 void gdt_install();

@@ -1,4 +1,4 @@
-#include "../include/path.h"
+#include <path.h>
 
 uint8_t **path(uint8_t *file)
 {

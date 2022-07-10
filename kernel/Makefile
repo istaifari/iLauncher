@@ -13,30 +13,26 @@ GCC_FLAGS := -ffreestanding\
 			 -fomit-frame-pointer\
 			 -fno-leading-underscore\
 			 -mgeneral-regs-only\
+			 -I include\
 			 -c\
 			 -Ofast
 LD_SOURCES := *.o
 LD_ARCH := melf_i386
-ASM_ARCH := felf
+ASM_ARCH := felf32 -O0
 QEMU_ARCH := i386 -machine pc -serial stdio -bios ../bios.bin -soundhw pcspk -m 16M #-usbdevice mouse
 
 default: emu
 
-# @genisoimage -quiet -R -b boot/.boot -no-emul-boot -boot-load-size 4 -boot-info-table -o ../ilauncher.iso ../OS_Files || echo Unknown Error!
-# @grub-mkrescue -o ../ilauncher.iso ../OS_Files || echo Unknown Error! --allow-multiple-definition
-
 all:
-	@nasm -$(ASM_ARCH) boot.S || nasm -$(ASM_ARCH) kernel_asm.S || echo Unknown Error!
-	@nasm -$(ASM_ARCH) idt.S || echo Unknown Error!
+	@nasm -$(ASM_ARCH) boot.asm || nasm -$(ASM_ARCH) boot.S || echo Unknown Error!
 	@gcc $(GCC_FLAGS) $(C_SOURCES) -$(GCC_ARCH) || echo Unknown Error!
-	@ld -$(LD_ARCH) -Tlinker.ld $(LD_SOURCES) -o kernel.bin || rm *.o *.bin
+	@ld -$(LD_ARCH) -Tlinker.ld $(LD_SOURCES) --allow-multiple-definition -o kernel.bin || rm *.o *.bin
 	@cp kernel.bin ../OS_Files/boot/kernel.bin
 	@rm ../ilauncher.iso || echo Okay!
 	@make initrd || echo Unknown Error!
-	@genisoimage -quiet -R -b boot/.boot -no-emul-boot -boot-load-size 4 -boot-info-table -o ../ilauncher.iso ../OS_Files || echo Unknown Error!
+	@grub-mkrescue -o ../ilauncher.iso ../OS_Files || echo Unknown Error!
 	@rm *.o *.bin *.img || echo Unknown Error!
 	@make emu || echo Unknown Error!
-	@cat bootloader.bin kernel.bin > ../OS_Files/boot/kernel.bin || echo Unknown Error!
 
 #tar cvf ../OS_Files/initrd.tar --directory=../ initrd
 initrd:

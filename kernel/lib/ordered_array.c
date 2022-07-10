@@ -1,4 +1,4 @@
-#include "../include/ordered_array.h"
+#include <ordered_array.h>
 
 signed char standard_lessthan_predicate(type_t a, type_t b)
 {

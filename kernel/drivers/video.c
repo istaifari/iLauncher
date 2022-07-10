@@ -1,5 +1,4 @@
-#define CHAR_PER_LINE80
-#include "../kernel.h"
+#include <video.h>
 
 int cursor_pos = -1;
 
@@ -76,6 +75,11 @@ void printchar(char c, char colors, char toblink)
 {
 	int curpos = get_cursor_pos() * 2;
 	char *screen = (char *)curpos + VIDEO_MEMORY;
+	if (c == '\0')
+	{
+		printchar(' ', colors, toblink);
+		return;
+	}
 	if (c == '\n')
 	{
 		next_line(0);

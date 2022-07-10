@@ -8,7 +8,7 @@ make: *** No rule to make target 'all'.  Stop.
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Thu Jun 30 18:46:19 2022
+# Make data base, printed on Sat Jul  9 21:01:52 2022
 
 # Variables
 
@@ -17,7 +17,7 @@ GDK_BACKEND = x11
 # environment
 LC_ALL = C
 # environment
-VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-b60f118c-2e7d-4b92-95f8-0855e75b778b.sock
+VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-09619951-3d6f-446d-be2f-246d92043314.sock
 # environment
 MANDATORY_PATH = /usr/share/gconf/xubuntu.mandatory.path
 # environment
@@ -99,7 +99,7 @@ MAKEFILE_LIST :=
 # environment
 VSCODE_VERBOSE_LOGGING = true
 # environment
-VSCODE_PID = 4459
+VSCODE_PID = 12474
 # environment
 XDG_SESSION_TYPE = x11
 # automatic
@@ -107,7 +107,7 @@ XDG_SESSION_TYPE = x11
 # environment
 CLUTTER_BACKEND = x11
 # environment
-SESSION_MANAGER = local/istaifari:@/tmp/.ICE-unix/3742,unix/istaifari:/tmp/.ICE-unix/3742
+SESSION_MANAGER = local/istaifari:@/tmp/.ICE-unix/3723,unix/istaifari:/tmp/.ICE-unix/3723
 # automatic
 *F = $(notdir $*)
 # environment
@@ -126,6 +126,8 @@ MAKE_HOST := x86_64-pc-linux-gnu
 SHELL = /bin/sh
 # default
 MAKECMDGOALS := all
+# environment
+PLATFORMIO_CALLER = vscode
 # environment
 XMODIFIERS = @im=ibus
 # environment
@@ -159,6 +161,8 @@ XDG_SEAT = seat0
 # environment
 GTK_IM_MODULE = ibus
 # environment
+NO_PROXY = 127.0.0.1
+# environment
 XDG_CURRENT_DESKTOP = XFCE
 # environment
 LS_COLORS = 
@@ -170,6 +174,7 @@ XDG_SEAT_PATH = /org/freedesktop/DisplayManager/Seat0
 DESKTOP_SESSION = xubuntu
 # environment
 ORIGINAL_XDG_CURRENT_DESKTOP = XFCE
+ 
 # 'override' directive
 GNUMAKEFLAGS := 
 # environment
@@ -178,6 +183,8 @@ CLUTTER_IM_MODULE = ibus
 LOGNAME = istaifari
 # environment
 GIO_LAUNCHED_DESKTOP_FILE = /usr/share/applications/code.desktop
+# environment
+PLATFORMIO_PATH = /home/istaifari/.platformio/penv/bin:/home/istaifari/.platformio/penv:/home/istaifari/.platformio/python3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/home/istaifari/.dotnet/tools:/home/istaifari/.dotnet/tools
 # environment
 XDG_VTNR = 7
 # makefile
@@ -195,7 +202,7 @@ MAKE_VERSION := 4.3
 # environment
 LC_MEASUREMENT = pt_BR.UTF-8
 # environment
-GIO_LAUNCHED_DESKTOP_FILE_PID = 4459
+GIO_LAUNCHED_DESKTOP_FILE_PID = 12474
 # environment
 _ = /usr/share/code/code
 # environment
@@ -210,6 +217,8 @@ GTK_OVERLAY_SCROLLING = 0
 XDG_SESSION_CLASS = user
 # environment
 VSCODE_AMD_ENTRYPOINT = vs/workbench/api/node/extensionHostProcess
+# environment
+PLATFORMIO_IDE = 2.5.0
 # environment
 HOME = /home/istaifari
 # environment
@@ -237,7 +246,7 @@ GDMSESSION = xubuntu
 # environment
 LC_IDENTIFICATION = pt_BR.UTF-8
 # variable set hash-table stats:
-# Load=112/1024=11%, Rehash=0, Collisions=6/139=4%
+# Load=116/1024=11%, Rehash=0, Collisions=7/143=5%
 
 # Pattern-specific Variable Values
 
@@ -279,7 +288,6 @@ all:
 makefile:
 #  Implicit rule search has been done.
 #  File does not exist.
- 
 #  File has been updated.
 #  Failed to be updated.
 
@@ -304,6 +312,6 @@ GNUmakefile:
 # strcache performance: lookups = 23 / hit rate = 13%
 # hash-table stats:
 # Load=20/8192=0%, Rehash=0, Collisions=0/23=0%
-# Finished Make data base on Thu Jun 30 18:46:19 2022
+# Finished Make data base on Sat Jul  9 21:01:52 2022
 
  

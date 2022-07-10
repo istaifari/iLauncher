@@ -1,4 +1,4 @@
-#include "../include/pic.h"
+#include <pic.h>
 
 void PIC_End()
 {

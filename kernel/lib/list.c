@@ -1,4 +1,4 @@
-#include "../include/list.h"
+#include <list.h>
 
 list_t *
 list_add(list_t *l, void *data)
@@ -59,7 +59,7 @@ list_get(list_t *l, uint32_t idx)
     return cur;
 }
 
-// if it() returns FALSE, then list_foreach() return the last iterated entry
+// if it() returns false, then list_foreach() return the last iterated entry
 list_t *
 list_foreach(list_t *l, list_iterator_t it, void *udata)
 {

@@ -1,11 +1,10 @@
 #pragma once
-#include "../kernel.h"
+#include <kernel.h>
 
 typedef struct keyboard
 {
   char ScanCode;
   long OnKeyDown;
-  bool isEnterPressed;
   bool isLeftShiftPressed;
   bool isRightShiftPressed;
   unsigned long keymap_size;
@@ -19,11 +18,14 @@ typedef struct keyboard_keybuffer
   size_t size;
 } keyboard_keybuffer_t;
 
-extern keyboard_t *default_keyboard;
+extern keyboard_t *keyboard_ps2;
 
+keyboard_t *keyboard_info_setup_layout(keyboard_t keyboard);
 keyboard_keybuffer_t *keyboard_keybuffer_setup(size_t size);
 void *keyboard_keybuffer_free(keyboard_keybuffer_t *keybuffer);
 void *keyboard_keybuffer_read(keyboard_keybuffer_t *keybuffer);
 void *keyboard_keybuffer_scan(keyboard_keybuffer_t *keybuffer);
+void *keyboard_keybuffer_clear_characters(keyboard_keybuffer_t *keybuffer);
 void InitPS2Keyboard();
-char GetKey();
+void ResetPS2Keyboard();
+char keyboard_get_key();

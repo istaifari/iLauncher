@@ -1,4 +1,4 @@
-#include "../include/keyboard.h"
+#include <keyboard.h>
 
 #define LeftShift 0x2A
 #define RightShift 0x36
@@ -68,7 +68,6 @@
 
 keyboard_t en_international = {
     .ScanCode = 0,
-    .isEnterPressed = false,
     .isLeftShiftPressed = false,
     .isRightShiftPressed = false,
     .keymap_size = 90,
@@ -147,7 +146,6 @@ keyboard_t en_international = {
 
 keyboard_t ptbr_abnt2 = {
     .ScanCode = 0,
-    .isEnterPressed = false,
     .isLeftShiftPressed = false,
     .isRightShiftPressed = false,
     .keymap_size = 90,
@@ -224,12 +222,22 @@ keyboard_t ptbr_abnt2 = {
     },
 };
 
-keyboard_t *default_keyboard = (keyboard_t *)&en_international;
+keyboard_t *keyboard_ps2;
+
+keyboard_t *keyboard_info_setup_layout(keyboard_t keyboard)
+{
+  keyboard_t *ret = kmalloc(sizeof(keyboard_t));
+  memset(ret, 0, sizeof(keyboard_t));
+  ret->keymap_size = keyboard.keymap_size;
+  memcpy(ret->base, keyboard.base, ret->keymap_size);
+  memcpy(ret->shift, keyboard.shift, ret->keymap_size);
+  return ret;
+}
 
 keyboard_keybuffer_t *keyboard_keybuffer_setup(size_t size)
 {
-  keyboard_keybuffer_t *tmp = kmalloc(sizeof(keyboard_keybuffer_t) * (size+1));
-  tmp->buffer = (char *)(kmalloc(size + 1));
+  keyboard_keybuffer_t *tmp = (keyboard_keybuffer_t *)(kmalloc(sizeof(keyboard_keybuffer_t) * (sizeof(char) * size + 1)));
+  tmp->buffer = (char *)(kmalloc(sizeof(char) * size + 1));
   tmp->size = size + 1;
   memset(tmp->buffer, '\0', tmp->size);
   return tmp;
@@ -251,7 +259,7 @@ void *keyboard_keybuffer_scan(keyboard_keybuffer_t *keybuffer)
 {
   if (!keybuffer)
     return false;
-  char keycode = GetKey();
+  char keycode = keyboard_get_key();
   long offset = strlen(keybuffer->buffer);
   switch (keycode)
   {
@@ -283,19 +291,26 @@ void *keyboard_keybuffer_scan(keyboard_keybuffer_t *keybuffer)
   }
 }
 
+void *keyboard_keybuffer_clear_characters(keyboard_keybuffer_t *keybuffer)
+{
+  for (long i = 0; i < keybuffer->size; i++)
+    keybuffer->buffer[i] = '\0';
+  return "OKAY";
+}
+
 char SetKey(char key_c, bool uppercase)
 {
-  if (key_c >= default_keyboard->keymap_size || key_c < 0)
+  if (key_c >= keyboard_ps2->keymap_size || key_c < 0)
     return 0;
   if (uppercase)
   {
-    default_keyboard->ScanCode = (char)default_keyboard->shift[key_c];
-    default_keyboard->OnKeyDown = 0;
+    keyboard_ps2->ScanCode = (char)keyboard_ps2->shift[key_c];
+    keyboard_ps2->OnKeyDown = 0;
   }
   else
   {
-    default_keyboard->ScanCode = (char)default_keyboard->base[key_c];
-    default_keyboard->OnKeyDown = 0;
+    keyboard_ps2->ScanCode = (char)keyboard_ps2->base[key_c];
+    keyboard_ps2->OnKeyDown = 0;
   }
 }
 
@@ -309,57 +324,72 @@ void *GetCharPos(const char *ss, char cc)
   }
 }
 
-char GetKey()
+char keyboard_get_key()
 {
-  if (default_keyboard->OnKeyDown == 1)
+  if (keyboard_ps2->OnKeyDown == 1)
   {
-    if (default_keyboard->OnKeyDown == 1)
-      default_keyboard->ScanCode = 0;
-    default_keyboard->OnKeyDown = 2;
+    if (keyboard_ps2->OnKeyDown == 1)
+      keyboard_ps2->ScanCode = 0;
+    keyboard_ps2->OnKeyDown = 2;
     return 0;
   }
-  else if (default_keyboard->OnKeyDown == 2)
+  else if (keyboard_ps2->OnKeyDown == 2)
   {
     return 0;
   }
-  else if (default_keyboard->OnKeyDown == 0)
+  else if (keyboard_ps2->OnKeyDown == 0)
   {
-    default_keyboard->OnKeyDown = 1;
-    return default_keyboard->ScanCode;
+    keyboard_ps2->OnKeyDown = 1;
+    return keyboard_ps2->ScanCode;
   }
 }
 
-void ScanKey(unsigned char scancode)
+void ScanKey(keyboard_t *keyboard, uint8_t scancode)
 {
+  if (!keyboard)
+    return;
   switch (scancode)
   {
-  /*case 0x1C:
-    default_keyboard->isEnterPressed = true;
-    return;
-  case 0x1C + 0x80:
-    default_keyboard->isEnterPressed = false;
-    return;*/
   case 0x2A:
-    default_keyboard->isLeftShiftPressed = true;
+    keyboard->isLeftShiftPressed = true;
     return;
   case 0x2A + 0x80:
-    default_keyboard->isLeftShiftPressed = false;
+    keyboard->isLeftShiftPressed = false;
     return;
   case 0x36:
-    default_keyboard->isRightShiftPressed = true;
+    keyboard->isRightShiftPressed = true;
     return;
   case 0x36 + 0x80:
-    default_keyboard->isRightShiftPressed = false;
+    keyboard->isRightShiftPressed = false;
     return;
   default:
-    SetKey(scancode, default_keyboard->isLeftShiftPressed | default_keyboard->isRightShiftPressed);
+    SetKey(scancode, keyboard->isLeftShiftPressed | keyboard->isRightShiftPressed);
   }
 }
 
-__attribute__((interrupt)) void HandlePS2Keyboard(int_frame_t *r)
+void InitPS2Keyboard()
 {
-  unsigned char scancode = inb(0x60);
-  ScanKey(scancode);
-  mouse_keyboard = "keyboard";
+  asm("cli");
+  if (!keyboard_ps2)
+    keyboard_ps2 = keyboard_info_setup_layout(en_international);
+  asm("sti");
+  idt_set_gate(32 + 1, KeyboardInt_Handler, 0x08, 0x8E);
+}
+
+void ResetPS2Keyboard()
+{
+  uint8_t tmp = inb(0x61);
+  outb(0x61, tmp | 0x80);
+  outb(0x61, tmp & 0x7F);
+  (void)inb(0x60);
+}
+
+__attribute__((interrupt)) void KeyboardInt_Handler(int_frame_t *r)
+{
+  asm("cli");
+  uint8_t scancode = inb(0x60);
+  ScanKey(keyboard_ps2, scancode);
+  mouse_keyboard = "keyboard ps/2";
   PIC_End();
+  asm("sti");
 }

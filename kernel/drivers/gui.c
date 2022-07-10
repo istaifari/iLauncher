@@ -1,4 +1,4 @@
-#include "../kernel.h"
+#include <kernel.h>
 
 bool gui_window_colide(long x1, long y1, long w1, long h1, long x2, long y2, long w2, long h2)
 {
@@ -29,59 +29,60 @@ void gui_window_update(Window *obj)
         obj->buttons_width = 18 * 1;
         obj->visible = true;
     }
-    if (Mouse.OnMouseDown_Left)
+    if (mouse_ps2->OnMouseDown_Left)
     {
-        /* Mouse Left */
+        /* mouse_ps2 Left */
         if (obj->visible)
         {
-            if (gui_window_colide(obj->x - 15 + obj->width + obj->left_right, obj->y + obj->top - 12, 15, 11, Mouse.x, Mouse.y, 1, 1))
+            if (gui_window_colide(obj->x - 15 + obj->width + obj->left_right, obj->y + obj->top - 12, 15, 11, mouse_ps2->x, mouse_ps2->y, 1, 1))
             {
-                Mouse.OnMouseDown_Left = !Mouse.OnMouseDown_Left;
-                _reboot();
+                mouse_ps2->OnMouseDown_Left = !mouse_ps2->OnMouseDown_Left;
+                poweroff();
+                reboot();
             }
-            if (gui_window_colide(obj->x + obj->left_right, obj->y + obj->bottom, obj->width - obj->buttons_width, obj->top - 6, Mouse.x, Mouse.y, 1, 1))
+            if (gui_window_colide(obj->x + obj->left_right, obj->y + obj->bottom, obj->width - obj->buttons_width, obj->top - 6, mouse_ps2->x, mouse_ps2->y, 1, 1))
             {
-                obj->x += -(posx - Mouse.x);
-                obj->y += -(posy - Mouse.y);
+                obj->x += -(posx - mouse_ps2->x);
+                obj->y += -(posy - mouse_ps2->y);
             }
             else
             {
-                if (gui_window_colide(obj->x + obj->left_right, obj->y, obj->width, 6, Mouse.x, Mouse.y, 1, 1))
+                if (gui_window_colide(obj->x + obj->left_right, obj->y, obj->width, 6, mouse_ps2->x, mouse_ps2->y, 1, 1))
                 {
-                    obj->y += -(posy - Mouse.y);
-                    obj->height -= -(posy - Mouse.y);
+                    obj->y += -(posy - mouse_ps2->y);
+                    obj->height -= -(posy - mouse_ps2->y);
                 }
-                else if (gui_window_colide(obj->x, obj->y + obj->top, obj->left_right, obj->height, Mouse.x, Mouse.y, 1, 1))
+                else if (gui_window_colide(obj->x, obj->y + obj->top, obj->left_right, obj->height, mouse_ps2->x, mouse_ps2->y, 1, 1))
                 {
-                    obj->x += -(posx - Mouse.x);
-                    obj->width -= -(posx - Mouse.x);
+                    obj->x += -(posx - mouse_ps2->x);
+                    obj->width -= -(posx - mouse_ps2->x);
                 }
-                else if (gui_window_colide(obj->x + obj->left_right, obj->y + obj->height + obj->top, obj->width, 6, Mouse.x, Mouse.y, 1, 1))
+                else if (gui_window_colide(obj->x + obj->left_right, obj->y + obj->height + obj->top, obj->width, 6, mouse_ps2->x, mouse_ps2->y, 1, 1))
                 {
-                    obj->height += -(posy - Mouse.y);
+                    obj->height += -(posy - mouse_ps2->y);
                 }
-                else if (gui_window_colide(obj->x + obj->width + obj->left_right, obj->y + obj->top, obj->left_right, obj->height, Mouse.x, Mouse.y, 1, 1))
+                else if (gui_window_colide(obj->x + obj->width + obj->left_right, obj->y + obj->top, obj->left_right, obj->height, mouse_ps2->x, mouse_ps2->y, 1, 1))
                 {
-                    obj->width += -(posx - Mouse.x);
+                    obj->width += -(posx - mouse_ps2->x);
                 }
             }
         }
     }
-    else if (Mouse.OnMouseDown_Middle)
+    else if (mouse_ps2->OnMouseDown_Middle)
     {
-        /* Mouse Middle */
+        /* mouse_ps2 Middle */
     }
-    else if (Mouse.OnMouseDown_Right)
+    else if (mouse_ps2->OnMouseDown_Right)
     {
-        /* Mouse Right */
-        Mouse.OnMouseDown_Right = false;
+        /* mouse_ps2 Right */
+        mouse_ps2->OnMouseDown_Right = false;
         if (obj->visible)
             obj->visible = false;
         else
             obj->visible = true;
     }
-    posx = Mouse.x;
-    posy = Mouse.y;
+    posx = mouse_ps2->x;
+    posy = mouse_ps2->y;
 }
 
 void gui_window_paint(Window *obj)

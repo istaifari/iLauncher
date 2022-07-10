@@ -1,10 +1,10 @@
 #pragma once
-#include <stddef.h>
-#include <stdint.h>
-#include "../kernel.h"
+#include <kernel.h>
 
-typedef struct MouseInfo
+typedef struct mouse
 {
+    char packet[4];
+    bool packetready;
     long x;
     long y;
     long x_old;
@@ -16,7 +16,7 @@ typedef struct MouseInfo
     bool OnMouseDown_Left;
     bool OnMouseDown_Middle;
     bool OnMouseDown_Right;
-} __attribute__((packed)) MouseInfo;
+} __attribute__((packed)) mouse_t;
 
 static unsigned MousePointer_24x32[24 * 32 + 2] = {
     24, 32,
@@ -53,7 +53,7 @@ static unsigned MousePointer_24x32[24 * 32 + 2] = {
     0x3f, 0x00, 0x3f, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40,
     0x3f, 0x3f, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40};
 
-extern MouseInfo Mouse;
+extern mouse_t *mouse_ps2;
 
-void ProcessMousePacket();
+mouse_t *mouse_info_setup();
 void InitPS2Mouse();

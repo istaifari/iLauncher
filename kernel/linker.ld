@@ -1,44 +1,49 @@
-OUTPUT_FORMAT("elf32-i386");
-ENTRY(_start);
+OUTPUT_FORMAT("elf32-i386")
+ENTRY(_start)
 
 SECTIONS
 {
-    .multiboot ALIGN (0x1000) : AT(0x100000)
+    . = 0x00100000;
+    
+    .multiboot.data :
     {
-        *(.multiboot)
+        *(.multiboot.data)
     }
 
-    .text 0x100000 :
+    .multiboot.text :
     {
-        code = .; _code = .; __code = .;
+        *(.multiboot.text)
+    }
+
+    . += 0xC0000000;
+
+    .text ALIGN(4096) : AT(ADDR(.text) - 0xC0000000)
+    {
         *(.text)
-        . = ALIGN(4096);
     }
 
-    .data :
+    .data ALIGN (4096) : AT(ADDR(.data) - 0xC0000000)
     {
-        data = .; _data = .; __data = .;
         *(.data)
-        *(.rodata)
-        . = ALIGN(4096);
+        *(.rodata*)
     }
 
-    .bss :
+    .bss ALIGN (4096) : AT(ADDR(.bss) - 0xC0000000)
     {
-        bss = .; _bss = .; __bss = .;
+        *(COMMON)
         *(.bss)
-        . = ALIGN(4096);
     }
+
+    end = .;
 
     /DISCARD/ :
     {
-        *(.note.gnu.property)
-        *(.eh_frame)
-        *(.note*)
-        *(.iplt*)
-        *(.igot*)
-        *(.rel*)
-        *(.comment)
+        *(.note.gnu.property);
+        *(.eh_frame);
+        *(.note*);
+        *(.iplt*);
+        *(.igot*);
+        *(.rel*);
+        *(.comment*);
     }
-    end = .; _end = .; __end = .;
 }

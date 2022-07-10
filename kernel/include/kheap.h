@@ -1,41 +1,69 @@
 #pragma once
-#include "../kernel.h"
+#include <kernel.h>
 
-#define KHEAP_START 0xC0000000
-#define KHEAP_INITIAL_SIZE 0x100000
-#define HEAP_INDEX_SIZE 0x20000
-#define HEAP_MAGIC 0x123890AB
-#define HEAP_MIN_SIZE 0x70000
+#define KHEAP_START (void *)0xC0400000
+#define KHEAP_INITIAL_SIZE 48 * M
+#define KHEAP_MAX_ADDRESS (void *)0xCFFFFFFF
+#define HEAP_MIN_SIZE 4 * M
 
-typedef struct
+#define PAGE_SIZE 4096
+#define OVERHEAD (sizeof(struct Block) + sizeof(unsigned int))
+
+struct Block
 {
-    uint32_t magic;  // Magic number, used for error checking and identification.
-    uint8_t is_hole; // 1 if this is a hole, 0 if this is a block.
-    uint32_t size;   // size of the block, including the end footer.
-} header_t;
+    unsigned int size;
+    struct Block *prev;
+    struct Block *next;
+};
 
-typedef struct
-{
-    uint32_t magic;     // Magic number, same as in header_t.
-    header_t *header; // Pointer to the block header.
-} footer_t;
+unsigned int kmalloc_int(unsigned int sz, int align, unsigned int *phys);
 
-typedef struct
-{
-    struct ordered_array *index;
-    uint32_t start_address; // The start of our allocated space.
-    uint32_t end_address;   // The end of our allocated space. May be expanded up to max_address.
-    uint32_t max_address;   // The maximum address the heap can be expanded to.
-    uint8_t supervisor;     // Should extra pages requested by us be mapped as supervisor-only?
-    uint8_t readonly;       // Should extra pages requested by us be mapped as read-only?
-} heap_t;
+void *kmalloc_cont(unsigned int sz, int align, unsigned int *phys);
 
-heap_t *create_heap(uint32_t start, uint32_t end, uint32_t max, uint8_t supervisor, uint8_t readonly);
-void *alloc(uint32_t size, uint8_t page_align, heap_t *heap);
-void free(void *p, heap_t *heap);
-uint32_t kmalloc_int(uint32_t sz, int align, uint32_t *phys);
-uint32_t kmalloc_a(uint32_t sz);
-uint32_t kmalloc_p(uint32_t sz, uint32_t *phys);
-uint32_t kmalloc_ap(uint32_t sz, uint32_t *phys);
-uint32_t kmalloc(uint32_t sz);
+void *kmalloc_a(unsigned int sz);
+
+unsigned int kmalloc_p(unsigned int sz, unsigned int *phys);
+
+unsigned int kmalloc_ap(unsigned int sz, unsigned int *phys);
+
+void *kmalloc(unsigned int sz);
+
 void kfree(void *p);
+
+void *krealloc(void *ptr, unsigned int size);
+
+void db_print();
+
+int doesItFit(struct Block *n, unsigned int size);
+
+void setFree(unsigned int *size, int x);
+
+void removeNodeFromFreelist(struct Block *x);
+
+void addNodeToFreelist(struct Block *x);
+
+int isBetter(struct Block *node1, struct Block *node2);
+
+struct Block *bestfit(unsigned int size);
+
+struct Block *getPrevBlock(struct Block *n);
+
+struct Block *getNextBlock(struct Block *n);
+
+unsigned int getRealSize(unsigned int size);
+
+unsigned int getSbrkSize(unsigned int size);
+
+int isFree(struct Block *n);
+
+int isEnd(struct Block *n);
+
+void kheap_install(void *start, void *end, void *max);
+
+void *malloc(unsigned int size);
+
+void free(void *ptr);
+
+void *kcalloc(unsigned int num, unsigned int size);
+
+void *realloc(void *ptr, unsigned int size);

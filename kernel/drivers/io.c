@@ -1,35 +1,51 @@
-#include "../include/io.h"
+#include <io.h>
+
+void outb(uint16_t port, uint8_t val)
+{
+    asm("outb %1, %0"
+        :
+        : "dN"(port), "a"(val));
+}
 
 uint8_t inb(uint16_t port)
 {
-    uint8_t result;
-    asm("inb %1, %0"
-        : "=a"(result)
-        : "Nd"(port));
-    return result;
-}
-
-void outb(uint16_t port, uint8_t data)
-{
-    asm("outb %0, %1"
-        :
-        : "a"(data), "Nd"(port));
-}
-
-uint8_t inw(uint16_t port)
-{
     uint8_t ret;
-    asm("inw %%dx,%%ax"
+    asm("inb %1, %0"
         : "=a"(ret)
-        : "d"(port));
+        : "Nd"(port));
     return ret;
+}
+
+uint16_t inw(uint16_t port)
+{
+    uint16_t rv;
+    asm("inw %1, %0"
+        : "=a"(rv)
+        : "dN"(port));
+    return rv;
 }
 
 void outw(uint16_t port, uint16_t data)
 {
-    asm("outw %%ax, %%dx"
+    asm("outw %1, %0"
         :
-        : "d"(port), "a"(data));
+        : "dN"(port), "a"(data));
+}
+
+uint32_t inl(uint16_t port)
+{
+    uint32_t rv;
+    asm("inl %%dx, %%eax"
+        : "=a"(rv)
+        : "dN"(port));
+    return rv;
+}
+
+void outl(uint16_t port, uint32_t data)
+{
+    asm("outl %%eax, %%dx"
+        :
+        : "dN"(port), "a"(data));
 }
 
 void io_wait()

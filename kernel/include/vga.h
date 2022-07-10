@@ -1,7 +1,5 @@
 #pragma once
-#include <stddef.h>
-#include <stdint.h>
-#include "../kernel.h"
+#include <kernel.h>
 
 static unsigned char g_640x480x2[] =
 	{
@@ -109,9 +107,9 @@ static unsigned char g_320x200x8[] =
 		0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,
 		0x41, 0x00, 0x0F, 0x00, 0x00};
 
-extern unsigned vga_width, vga_height, vga_bpp, vga_depth, vga_pitch, vga_bufsize;
+extern uint32_t vga_width, vga_height, vga_bpp, vga_depth, vga_pitch, vga_bufsize;
 
 void vga_clear(long c);
 void vga_swapbuffers();
-unsigned vga_getresolution(int select);
+uint32_t vga_getresolution(int select);
 void vga_start();

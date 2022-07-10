@@ -1,5 +1,5 @@
 #pragma once
-#include "../kernel.h"
+#include <kernel.h>
 
 #define MULTIBOOT_FLAG_MEM 0x001
 #define MULTIBOOT_FLAG_DEVICE 0x002

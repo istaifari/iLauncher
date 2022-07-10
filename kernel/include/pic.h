@@ -1,5 +1,5 @@
 #pragma once
-#include "../kernel.h"
+#include <kernel.h>
 
 void RemapPIC();
 void PIC_End();

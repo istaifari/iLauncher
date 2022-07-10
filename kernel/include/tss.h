@@ -1,9 +1,9 @@
 #pragma once
-#include "../kernel.h"
+#include <kernel.h>
 
 typedef struct tss_entry
 {
-    uint32_t prev_tss;
+    uint32_t prevTss;
     uint32_t esp0;
     uint32_t ss0;
     uint32_t esp1;
@@ -29,8 +29,8 @@ typedef struct tss_entry
     uint32_t gs;
     uint32_t ldt;
     uint16_t trap;
-    uint16_t iomap_base;
-} __attribute__((packed)) tss_entry_t;
+    uint16_t iomap;
+} tss_entry_t;
 
-void tss_install();
-void tss_set_esp0(uint32_t esp0);
+void tss_install(uint32_t idx, uint32_t kss, uint32_t kesp);
+void tss_set_stack(uint32_t kss, uint32_t kesp);

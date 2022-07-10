@@ -1,4 +1,4 @@
-#include "../include/image.h"
+#include <image.h>
 
 void *tga_load(void* filename)
 {

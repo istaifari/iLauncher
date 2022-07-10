@@ -1,6 +1,0 @@
-timeout 0
-title iLauncher
-root (cd)
-kernel /boot/kernel.bin
-module /initrd.tar
-boot

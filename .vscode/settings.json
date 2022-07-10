@@ -35,7 +35,18 @@
         "image.h": "c",
         "stb_image.h": "c",
         "tarfs.h": "c",
-        "clock.h": "c"
+        "clock.h": "c",
+        "vesa.h": "c",
+        "*.b": "c",
+        "tss.h": "c",
+        "ctype.h": "c",
+        "link.h": "c",
+        "multiboot.h": "c",
+        "path.h": "c",
+        "page.h": "c",
+        "list.h": "c",
+        "bios32.h": "c"
     },
-    "C_Cpp.dimInactiveRegions": false
+    "C_Cpp.dimInactiveRegions": false,
+    "C_Cpp.default.configurationProvider": "ms-vscode.makefile-tools"
 }

@@ -1,5 +1,5 @@
 #pragma once
-#include "../kernel.h"
+#include <kernel.h>
 
 #define FS_FILE 0x01
 #define FS_DIRECTORY 0x02

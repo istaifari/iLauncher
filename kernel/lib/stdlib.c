@@ -1,4 +1,4 @@
-#include "../include/stdlib.h"
+#include <stdlib.h>
 
 static long next = 1;
 

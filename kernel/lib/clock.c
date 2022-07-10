@@ -1,11 +1,13 @@
-#include "../include/clock.h"
+#include <clock.h>
 
 clock_t *timer;
 
-__attribute__((interrupt)) void HandleTimer(int_frame_t *r)
+__attribute__((interrupt)) void TimerInt_Handler(int_frame_t *r)
 {
+    asm("cli");
     clock_update(timer);
     PIC_End();
+    asm("sti");
 }
 
 void clock_timer_phase(long hz)
@@ -18,21 +20,27 @@ void clock_timer_phase(long hz)
 
 void InitTimer()
 {
-    timer = kmalloc(sizeof(clock_t) * ((sizeof(struct time_t) * ((sizeof(long) * 4))) * (sizeof(char) * (2 * 3))));
-    timer->time = kmalloc((sizeof(struct time_t) * ((sizeof(long) * 4))) * (sizeof(char) * (2 * 3)));
-    timer->time->number = kmalloc(sizeof(long) * 4);
-    timer->time->number[3] = 0;
-    timer->time->number[2] = 0;
-    timer->time->number[1] = 0;
-    timer->time->number[0] = 0;
-    timer->time->hh = kmalloc(sizeof(char) * (2));
-    memset(timer->time->hh, '0', 1);
-    timer->time->mm = kmalloc(sizeof(char) * (2));
-    memset(timer->time->mm, '0', 1);
-    timer->time->ss = kmalloc(sizeof(char) * (2));
-    memset(timer->time->ss, '0', 1);
-    timer->timeout = 0;
-    clock_timer_phase(100);
+    if (!timer)
+    {
+        asm("cli");
+        timer = kmalloc(sizeof(clock_t) * ((sizeof(struct time_t) * ((sizeof(long) * 4))) * (sizeof(char) * (2 * 3))));
+        timer->time = kmalloc((sizeof(struct time_t) * ((sizeof(long) * 4))) * (sizeof(char) * (2 * 3)));
+        timer->time->number = kmalloc(sizeof(long) * 4);
+        timer->time->number[3] = 0;
+        timer->time->number[2] = 0;
+        timer->time->number[1] = 0;
+        timer->time->number[0] = 0;
+        timer->time->hh = kmalloc(sizeof(char) * (2));
+        memset(timer->time->hh, '0', 1);
+        timer->time->mm = kmalloc(sizeof(char) * (2));
+        memset(timer->time->mm, '0', 1);
+        timer->time->ss = kmalloc(sizeof(char) * (2));
+        memset(timer->time->ss, '0', 1);
+        timer->timeout = 0;
+        clock_timer_phase(100);
+        asm("sti");
+    }
+    idt_set_gate(32 + 0, TimerInt_Handler, 0x08, 0x8E);
 }
 
 void *clock_convert1to01(char *str)
@@ -106,14 +114,14 @@ void *clock_fullread(clock_t *object)
 
 void *clock_settime(clock_t *object, const char *time)
 {
-    char *hh = time+(2-2);
-    char *mm = time+(5-2);
-    char *ss = time+(8-2);
+    char *hh = time + (2 - 2);
+    char *mm = time + (5 - 2);
+    char *ss = time + (8 - 2);
     for (size_t i = 0; i < 6; i++)
     {
         if (i < 3)
-            mm[2+i] = '\0';
-        hh[2+i] = '\0';
+            mm[2 + i] = '\0';
+        hh[2 + i] = '\0';
     }
     object->time->number[3] = atoi(hh);
     object->time->number[2] = atoi(mm);

@@ -1,5 +1,5 @@
 #pragma once
-#include "../kernel.h"
+#include <kernel.h>
 
 #define LIST_MAGIC 0xC0FFBABE
 
