@@ -132,6 +132,7 @@ void devices_setup()
         keyboard_ps2 = keyboard_info_setup_layout(en_international);
     if (!mouse_ps2)
         mouse_ps2 = mouse_info_setup();
+    enable();
 }
 
 void _kernel(multiboot_info_t *ebx, uintptr_t esp)

@@ -112,7 +112,6 @@ void kheap_install(void *start, void *end, void *max)
     heap_max = max;
     heap_curr = start;
     kheap_enabled = 1;
-    enable();
 }
 
 uint32_t getRealSize(uint32_t size)

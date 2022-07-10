@@ -18,6 +18,7 @@ section .multiboot.text
 global _start
 
 _start:
+    cli
 	mov ecx, (TEMP_PAGE_DIRECTORY - VM_BASE)
     mov cr3, ecx
     mov ecx, cr4;
@@ -61,7 +62,6 @@ PG_BIT_OFF equ 0x7fffffff
 PG_BIT_ON equ 0x80000000
 
 _start_v86m:
-    cli
 	mov dword[TEMP_PAGE_DIRECTORY], 0
     invlpg[0]
     mov esp, stack_start+stack_end

@@ -19,7 +19,7 @@ GCC_FLAGS := -ffreestanding\
 LD_SOURCES := *.o
 LD_ARCH := melf_i386
 ASM_ARCH := felf32 -O0
-QEMU_ARCH := i386 -machine pc -serial stdio -bios ../bios.bin -soundhw pcspk -m 16M #-usbdevice mouse
+QEMU_ARCH := i386 -machine pc -serial stdio -bios ../bios.bin -soundhw pcspk -m 8M #-usbdevice mouse
 
 default: emu
 

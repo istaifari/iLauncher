@@ -53,9 +53,10 @@ void idt_install()
     idtr.limit = sizeof(idt) - 1;
     idtr.base = (uint32_t)&idt;
     memset(&idt, 0, idtr.limit);
+    InitTimer();
     InitPS2Keyboard();
     InitPS2Mouse();
-    InitTimer();
+    ResetPS2Keyboard();
     for (long i = 0; i < 15; i++)
         if (idt[32 + i].sel == 0)
             idt_set_gate(32 + i, irq_null, 0x08, 0x8E);
